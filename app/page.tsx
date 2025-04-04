@@ -1,44 +1,214 @@
 "use client"
-import GrantApplicationForm from '../components/GrantApplicationForm'
+
+import Link from 'next/link'
+import Navbar from '../components/Navbar'
+import Hero from '../components/Hero'
+import FeaturedOrg from '../components/FeaturedOrg'
+import ProcessStep from '../components/ProcessStep'
+import FaqAccordion from '../components/FaqAccordion'
+import Footer from '../components/Footer'
 
 export default function Home() {
+  // Organization data
+  const organizations = [
+    {
+      name: "OpenSats",
+      logo: "/logos/opensats.png",
+      description: "Supporting open source Bitcoin development and education through sustainable funding models.",
+      accentColor: "bg-orange-500",
+    },
+    {
+      name: "Btrust",
+      logo: "/logos/btrust.jpg",
+      description: "Advancing Bitcoin development throughout Africa and beyond, focusing on self-sovereignty.",
+      accentColor: "bg-blue-600",
+    },
+    {
+      name: "Brink",
+      logo: "/logos/brink.png",
+      description: "Supporting Bitcoin protocol developers and research to strengthen the Bitcoin network.",
+      accentColor: "bg-purple-600",
+    },
+    {
+      name: "HRF",
+      logo: "/logos/hrf.png",
+      description: "Promoting human rights and freedom through Bitcoin technology and education.",
+      accentColor: "bg-red-600",
+    },
+  ];
+
+  const processSteps = [
+    {
+      number: 1,
+      title: "Complete One Application",
+      description: "Fill out a single comprehensive application with details about your Bitcoin project.",
+      icon: (
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+        </svg>
+      )
+    },
+    {
+      number: 2,
+      title: "Choose Organizations",
+      description: "Select which Bitcoin funding organizations you want to apply to from our partners.",
+      icon: (
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
+      )
+    },
+    {
+      number: 3,
+      title: "Get Funding",
+      description: "Selected organizations will review your application and reach out directly if interested.",
+      icon: (
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      )
+    },
+  ];
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900 tracking-tight">
-              Bitcoin Grant Application Portal
-            </h1>
-            <p className="text-lg text-gray-700 mb-8 max-w-3xl mx-auto">
-              A unified platform for applying to Bitcoin-related grants across multiple organizations
+    <main className="min-h-screen relative">
+      <Navbar />
+      
+      {/* Hero Section */}
+      <Hero />
+
+      {/* Featured Organizations */}
+      <section id="organizations" className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Partner Organizations</h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Apply once and reach these premier Bitcoin funding organizations dedicated to advancing Bitcoin development and adoption.
             </p>
-            <div className="bg-amber-50 p-5 border-l-4 border-amber-500 rounded-md mb-8 text-left shadow-sm">
-              <h2 className="text-xl font-semibold text-amber-800 mb-2">Important Information</h2>
-              <p className="text-amber-700">
-                This application will be submitted to the organization you select. Each organization has its own evaluation criteria and process.
-                Please ensure your application aligns with the goals and requirements of the selected organization.
-              </p>
-            </div>
           </div>
           
-          <div className="bg-white rounded-xl shadow-xl overflow-hidden">
-            <div className="bg-gray-800 text-white py-6 px-8">
-              <h2 className="text-2xl font-bold">Grant Application Form</h2>
-              <p className="text-gray-300 text-sm mt-1">
-                Complete the form below to apply for funding
-              </p>
-            </div>
-            <div className="p-6 md:p-10">
-              <GrantApplicationForm />
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {organizations.map((org, index) => (
+              <FeaturedOrg 
+                key={index}
+                name={org.name} 
+                logo={org.logo} 
+                description={org.description} 
+                accentColor={org.accentColor}
+              />
+            ))}
           </div>
-          
-          <footer className="mt-12 text-center text-gray-500 text-sm">
-            <p>© {new Date().getFullYear()} Bitcoin Grant Application Portal</p>
-          </footer>
         </div>
-      </div>
+      </section>
+
+      {/* How It Works */}
+      <section id="how-it-works" className="py-24 bg-white relative overflow-hidden">
+        {/* Background Elements */}
+        <div className="absolute inset-0 overflow-hidden opacity-5 pointer-events-none">
+          <div className="absolute top-1/4 -left-20 w-96 h-96 rounded-full bg-yellow-300"></div>
+          <div className="absolute bottom-1/3 -right-20 w-64 h-64 rounded-full bg-orange-300"></div>
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div className="text-center mb-16">
+            <span className="inline-block bg-amber-100 text-amber-800 px-4 py-2 rounded-full text-sm font-medium mb-5">
+              Simplified Process
+            </span>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">How It Works</h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Our streamlined process connects your Bitcoin project with the right funding organizations, saving you time and maximizing your chances of success.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            {processSteps.map((step) => (
+              <ProcessStep 
+                key={step.number}
+                number={step.number}
+                title={step.title}
+                description={step.description}
+                icon={step.icon}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-16 bg-gradient-to-r from-gray-900 to-gray-800 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold mb-4">Why Use The Common Application</h2>
+            <p className="text-gray-300 max-w-3xl mx-auto">
+              We&apos;re simplifying the grant application process for the Bitcoin ecosystem
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="text-center p-6 bg-gray-800/50 rounded-xl">
+              <div className="w-12 h-12 mx-auto mb-4 text-yellow-400 flex items-center justify-center">
+                <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-2">One Application</h3>
+              <p className="text-gray-400">Apply to multiple organizations with a single form</p>
+            </div>
+            <div className="text-center p-6 bg-gray-800/50 rounded-xl">
+              <div className="w-12 h-12 mx-auto mb-4 text-yellow-400 flex items-center justify-center">
+                <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-2">Save Time</h3>
+              <p className="text-gray-400">No need to complete multiple applications</p>
+            </div>
+            <div className="text-center p-6 bg-gray-800/50 rounded-xl">
+              <div className="w-12 h-12 mx-auto mb-4 text-yellow-400 flex items-center justify-center">
+                <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-2">Multiple Organizations</h3>
+              <p className="text-gray-400">Access funding from leading Bitcoin organizations</p>
+            </div>
+            <div className="text-center p-6 bg-gray-800/50 rounded-xl">
+              <div className="w-12 h-12 mx-auto mb-4 text-yellow-400 flex items-center justify-center">
+                <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-2">Better Security</h3>
+              <p className="text-gray-400">Submit your information securely in one place</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section id="faq" className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <FaqAccordion />
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-gradient-to-br from-amber-500 to-yellow-500 text-black">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Apply for Bitcoin Funding?</h2>
+          <p className="text-xl text-black/80 max-w-3xl mx-auto mb-10">
+            Complete our common application form to submit your Bitcoin project for funding consideration from multiple organizations.
+          </p>
+          <Link 
+            href="/apply" 
+            className="inline-block px-8 py-4 bg-black hover:bg-gray-900 text-white font-bold rounded-lg text-lg transition-all shadow-lg hover:shadow-xl"
+          >
+            Start Your Application
+          </Link>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <Footer />
     </main>
   )
 } 

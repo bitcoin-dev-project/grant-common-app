@@ -18,7 +18,12 @@ Create a `.env.local` file in the root of your grant application portal with the
 # Organization API endpoints
 OPENSATS_API_URL=https://grant-website-wine.vercel.app/api/github
 OPENSATS_API_KEY=development-test-key
+
+# SendGrid Email Configuration
+SENDGRID_API_URL=https://grant-website-wine.vercel.app/api/sendgrid
 ```
+
+Make sure that both API endpoints are correctly configured and accessible in the OpenSats clone.
 
 ## Step 2: Build and Deploy the Grant Portal
 
@@ -51,7 +56,7 @@ OPENSATS_API_KEY=development-test-key
 3. Set environment variables in the Vercel dashboard:
    - Go to your project settings
    - Navigate to the Environment Variables section
-   - Add the same variables as in your `.env.local` file
+   - Add all the variables from your `.env.local` file
 
 ## Step 3: Testing the Integration
 
@@ -59,6 +64,7 @@ OPENSATS_API_KEY=development-test-key
 2. Submit the form
 3. Check the console logs for request/response details
 4. Verify in your OpenSats clone that the application was received properly
+5. Confirm that email notifications were sent to both the applicant and admin email
 
 ## Troubleshooting
 
@@ -79,13 +85,21 @@ If the API rejects your requests due to authorization:
 1. Check that the `OPENSATS_API_KEY` matches what's expected in the OpenSats clone
 2. Ensure the Authorization header is correctly formatted in the request
 
+### Email Delivery Issues
+
+If emails are not being delivered:
+
+1. Verify that the OpenSats clone's SendGrid integration is working correctly
+2. Check the logs in the OpenSats clone for any errors related to SendGrid
+3. Make sure the `SENDGRID_API_URL` is pointing to the correct endpoint
+
 ### Network Errors
 
 If the application fails to connect to the OpenSats clone:
 
 1. Verify that the OpenSats clone is running and accessible
-2. Check that the `OPENSATS_API_URL` is correct
-3. Test the API endpoint directly with a tool like Postman or cURL
+2. Check that the API URLs are correct
+3. Test the API endpoints directly with a tool like Postman or cURL
 
 ## Adding New Organizations
 

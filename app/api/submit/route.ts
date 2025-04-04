@@ -22,7 +22,7 @@ import { Organization } from '../../../config/organizations'
 
 // Define application type
 interface ApplicationData {
-  organization: string;
+  organizations: string[];
   application: Record<string, unknown>;
   [key: string]: unknown;
 }
@@ -32,37 +32,76 @@ export async function POST(request: Request) {
     const data = await request.json() as ApplicationData
     
     // Validate the required fields
-    if (!data.organization || !data.application) {
+    if (!data.organizations || !data.organizations.length || !data.application) {
       return NextResponse.json(
         { error: 'Missing required fields' }, 
         { status: 400 }
       )
     }
 
-    const org = organizations[data.organization]
+    // Get all valid organizations from the request
+    const validOrgs = data.organizations.filter(orgId => {
+      const org = organizations[orgId];
+      return org && org.active && org.workflowImplemented === true;
+    });
     
-    // Check if the organization exists and is active
-    if (!org || !org.active) {
+    // Check if there are any valid organizations
+    if (validOrgs.length === 0) {
       return NextResponse.json(
-        { error: 'Organization not found or inactive' }, 
-        { status: 404 }
+        { error: 'No valid organizations selected' }, 
+        { status: 400 }
       )
     }
 
-    // Process the submission based on the organization
-    let response
+    // Process the submission for each organization
+    const results: Record<string, SubmissionResponse> = {};
+    let overallSuccess = true;
     
-    if (data.organization === 'opensats') {
-      response = await submitToOpenSats(data.application, org)
-    } else {
-      // Handle other organizations as we add them
-      return NextResponse.json(
-        { error: 'Organization handling not implemented' }, 
-        { status: 501 }
-      )
+    for (const orgId of validOrgs) {
+      const org = organizations[orgId];
+      
+      let response: SubmissionResponse;
+      if (orgId === 'opensats') {
+        response = await submitToOpenSats(data.application, org);
+      } else {
+        // For now, skip organizations that don't have implementations
+        console.log(`Skipping ${orgId} - implementation not available`);
+        continue;
+      }
+      
+      results[orgId] = response;
+      if (!response.success) {
+        overallSuccess = false;
+      }
     }
 
-    return NextResponse.json(response)
+    // Send confirmation emails upon successful submission
+    if (overallSuccess && data.application.email) {
+      try {
+        const mainOrg = validOrgs[0];
+        if (mainOrg && organizations[mainOrg]) {
+          await sendConfirmationEmails(data.application);
+        }
+      } catch (emailError) {
+        console.error('Error sending confirmation emails:', emailError);
+        // Still return success even if email sending fails
+      }
+    }
+
+    if (Object.keys(results).length === 0) {
+      return NextResponse.json(
+        { error: 'No organizations processed' }, 
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      success: overallSuccess,
+      message: overallSuccess 
+        ? 'Application submitted successfully' 
+        : 'Some submissions failed',
+      data: results
+    });
   } catch (error) {
     console.error('Error processing submission:', error)
     return NextResponse.json(
@@ -96,6 +135,10 @@ async function submitToOpenSats(application: Record<string, unknown>, org: Organ
     }
 
     // Submit to OpenSats API
+    if (!org.apiUrl) {
+      throw new Error('API URL is not configured for this organization');
+    }
+    
     const response = await axios.post(org.apiUrl, formattedApplication, { headers })
     
     console.log('OpenSats API response:', response.data)
@@ -118,4 +161,46 @@ async function submitToOpenSats(application: Record<string, unknown>, org: Organ
   }
 }
 
+// Function to send confirmation emails
+async function sendConfirmationEmails(application: Record<string, unknown>): Promise<void> {
+  const applicantEmail = application.email as string
+  
+  if (!applicantEmail) {
+    throw new Error('Applicant email is required');
+  }
+  
+  // Get SendGrid API URL from environment variables
+  const sendgridApiUrl = process.env.SENDGRID_API_URL
+  
+  if (!sendgridApiUrl) {
+    throw new Error('SendGrid API URL is not configured (SENDGRID_API_URL)')
+  }
+  
+  try {
+    // Format application data for the website app's SendGrid endpoint
+    // The website app expects the full application data without special formatting
+    const emailData = {
+      ...application,
+      // Add any fields expected by the website app's SendGrid endpoint
+      project_name: application.project_name,
+      email: applicantEmail
+    }
+    
+    console.log('Sending application to SendGrid API:', sendgridApiUrl)
+    
+    // Call the website app's SendGrid endpoint
+    const response = await axios.post(sendgridApiUrl, emailData)
+    
+    console.log('SendGrid API response:', response.data)
+    
+    if (response.data.message !== 'success') {
+      throw new Error(`SendGrid API returned error: ${response.data.message}`)
+    }
+  } catch (error) {
+    console.error('Error sending emails via SendGrid API:', error)
+    throw error
+  }
+}
+
+// We'll add more organization-specific submission functions as we expand 
 // We'll add more organization-specific submission functions as we expand 
