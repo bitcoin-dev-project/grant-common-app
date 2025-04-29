@@ -29,9 +29,9 @@ interface ApplicationData {
 
 // Monday.com API specific interfaces
 interface MondayAPIResponse {
-  data?: any;
+  data?: Record<string, unknown>;
   error_message?: string;
-  errors?: any[];
+  errors?: Array<Record<string, unknown>>;
   status_code?: number;
 }
 
@@ -66,13 +66,13 @@ export async function POST(request: Request) {
     let overallSuccess = true;
     
     for (const orgId of validOrgs) {
-      const org = organizations[orgId];
+      const orgConfig = organizations[orgId];
       
       let response: SubmissionResponse;
       if (orgId === 'opensats') {
-        response = await submitToOpenSats(data.application, org);
+        response = await submitToOpenSats(data.application, orgConfig);
       } else if (orgId === 'hrf') {
-        response = await submitToHRF(data.application, org);
+        response = await submitToHRF(data.application);
       } else {
         // For now, skip organizations that don't have implementations
         console.log(`Skipping ${orgId} - implementation not available`);
@@ -124,8 +124,8 @@ export async function POST(request: Request) {
 interface SubmissionResponse {
   success: boolean;
   message: string;
-  data?: any;
-  error?: any;
+  data?: Record<string, unknown>;
+  error?: string | Record<string, unknown> | unknown;
 }
 
 async function submitToOpenSats(application: Record<string, unknown>, org: Organization): Promise<SubmissionResponse> {
@@ -166,12 +166,12 @@ async function submitToOpenSats(application: Record<string, unknown>, org: Organ
     return {
       success: false,
       message: 'Failed to submit application to OpenSats',
-      error: err?.response?.data || err.message
+      error: err?.response?.data || err.message || 'Unknown error'
     }
   }
 }
 
-async function submitToHRF(application: Record<string, unknown>, org: Organization): Promise<SubmissionResponse> {
+async function submitToHRF(application: Record<string, unknown>): Promise<SubmissionResponse> {
   try {
     // Format application data for HRF's Monday.com board
     // HRF uses Monday.com for their grant management
@@ -283,16 +283,18 @@ async function submitToHRF(application: Record<string, unknown>, org: Organizati
       }
     );
 
-    if (response.data.errors) {
-      throw new Error(`Monday.com API error: ${JSON.stringify(response.data.errors)}`);
+    const mondayResponse = response.data as Record<string, unknown>;
+
+    if (mondayResponse.errors) {
+      throw new Error(`Monday.com API error: ${JSON.stringify(mondayResponse.errors)}`);
     }
 
-    console.log('Monday.com API response for HRF:', response.data);
+    console.log('Monday.com API response for HRF:', mondayResponse);
     
     return {
       success: true,
       message: 'Application submitted successfully to HRF',
-      data: response.data
+      data: mondayResponse
     };
   } catch (error: unknown) {
     const err = error as Error & { response?: { data?: unknown } };
@@ -302,7 +304,7 @@ async function submitToHRF(application: Record<string, unknown>, org: Organizati
     return {
       success: false,
       message: 'Failed to submit application to HRF',
-      error: err?.response?.data || err.message
+      error: err?.response?.data || err.message || 'Unknown error'
     };
   }
 }

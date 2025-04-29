@@ -46,6 +46,7 @@ type FormData = {
   funding_usage?: string;
   prior_funding?: string;
   social_media?: string;
+  additional_info?: string;
 }
 
 // Define option type for select inputs
@@ -72,6 +73,13 @@ type DebugInfo = {
   message?: string;
 };
 
+// Add type for submission results
+interface SubmissionResult {
+  success: boolean;
+  error?: string;
+  data?: Record<string, unknown>;
+}
+
 export default function GrantApplicationForm({ preselectedOrgs }: { preselectedOrgs?: string[] }) {
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -94,11 +102,10 @@ export default function GrantApplicationForm({ preselectedOrgs }: { preselectedO
   const {
     register,
     handleSubmit,
-    control,
     setValue,
     watch,
     trigger,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
       organizations: preselectedOrgs || [],
@@ -262,29 +269,6 @@ export default function GrantApplicationForm({ preselectedOrgs }: { preselectedO
     }
   };
 
-  // Add a validateAllFields function to check all required fields
-  const validateAllFields = () => {
-    const data = watch();
-    const missingFields: Record<string, string> = {};
-    
-    // Check all required fields
-    Object.entries(requiredFieldsBySection).forEach(([, fieldList]) => {
-      fieldList.forEach(field => {
-        const key = field as keyof FormData;
-        
-        if (key === 'organizations') {
-          if (!data.organizations || data.organizations.length === 0) {
-            missingFields.organizations = "Please select at least one organization";
-          }
-        } else if (!data[key]) {
-          missingFields[key] = "This field is required";
-        }
-      });
-    });
-    
-    return missingFields;
-  };
-
   const onSubmit = async (data: FormData) => {
     setLoading(true)
     setError(null)
@@ -294,7 +278,7 @@ export default function GrantApplicationForm({ preselectedOrgs }: { preselectedO
       console.log('Submitting form data:', data);
       
       // Prepare submission results for all selected organizations
-      const submissionResults: Record<string, any> = {}
+      const submissionResults: Record<string, SubmissionResult> = {}
       let hasError = false
       
       // Submit to each selected organization
@@ -314,11 +298,12 @@ export default function GrantApplicationForm({ preselectedOrgs }: { preselectedO
               submissionResults[orgId] = { success: false, error: response.data.error || response.data.message };
               hasError = true;
             }
-          } catch (error: any) {
-            console.error(`Error submitting to ${orgId}:`, error);
+          } catch (error: unknown) {
+            const err = error as Error & { response?: { data?: { error?: string, message?: string } } };
+            console.error(`Error submitting to ${orgId}:`, err);
             submissionResults[orgId] = { 
               success: false, 
-              error: error.response?.data?.error || error.message || 'An error occurred' 
+              error: err.response?.data?.error || err.message || 'An error occurred' 
             };
             hasError = true;
           }
@@ -333,11 +318,12 @@ export default function GrantApplicationForm({ preselectedOrgs }: { preselectedO
         setSubmitted(true);
         setDebugInfo(submissionResults);
       }
-    } catch (error: any) {
-      console.error('Error in form submission:', error);
-      setError(error.message || 'An unexpected error occurred');
-      if (error.response?.data) {
-        setDebugInfo(error.response.data);
+    } catch (error: unknown) {
+      const err = error as Error & { response?: { data?: unknown } };
+      console.error('Error in form submission:', err);
+      setError(err.message || 'An unexpected error occurred');
+      if (err.response?.data) {
+        setDebugInfo(err.response.data as DebugInfo);
       }
     } finally {
       setLoading(false);
@@ -512,18 +498,6 @@ export default function GrantApplicationForm({ preselectedOrgs }: { preselectedO
 
   // Get active organizations for the dropdown
   const activeOrgs = Object.values(organizations).filter(org => org.active);
-  
-  // Options for dropdown fields
-  const focusOptions = [
-    { value: "", label: "(Choose One)" },
-    { value: "core", label: "Bitcoin Core" },
-    { value: "education", label: "Education" },
-    { value: "layer1", label: "Layer1 / Bitcoin" },
-    { value: "layer2", label: "Layer2 / Lightning" },
-    { value: "eCash", label: "Layer3 / eCash" },
-    { value: "nostr", label: "Nostr" },
-    { value: "other", label: "Other" }
-  ];
   
   const durationOptions = [
     { value: "12 months", label: "12 months" },
@@ -1591,7 +1565,9 @@ export default function GrantApplicationForm({ preselectedOrgs }: { preselectedO
             type="textarea"
             register={register}
             name={isHRFSelected ? "additional_info" as keyof FormData : "anything_else"}
-            error={isHRFSelected ? (errors as any).additional_info : errors.anything_else}
+            error={isHRFSelected 
+              ? errors.additional_info as unknown as { message?: string } 
+              : errors.anything_else}
           />
           
           <div className="mt-6 mb-8 p-5 bg-gray-50 border border-gray-200 rounded-lg">
