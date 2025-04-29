@@ -16,7 +16,7 @@ const organizations: Record<string, Organization> = {
     description: 'OpenSats is a nonprofit organization dedicated to supporting open-source Bitcoin and other free and open-source software projects.',
     website: 'https://opensats.org',
     logo: '/logos/opensats.png',
-    apiUrl: process.env.OPENSATS_API_URL || 'https://opensats.org/api/github',
+    apiUrl: process.env.OPENSATS_API_URL,
     active: true,
     workflowImplemented: true
   },
@@ -44,8 +44,9 @@ const organizations: Record<string, Organization> = {
     description: 'The Human Rights Foundation supports Bitcoin developers working on tools and technologies that enhance financial privacy and sovereignty.',
     website: 'https://hrf.org/programs_posts/devfund/',
     logo: '/logos/hrf.png',
+    apiUrl: process.env.HRF_MONDAY_API_URL || 'https://api.monday.com/v2',
     active: true,
-    workflowImplemented: false
+    workflowImplemented: true
   },
   // Placeholder for future organizations
   // spiralbtc: {

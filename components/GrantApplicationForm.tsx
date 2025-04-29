@@ -9,8 +9,8 @@ import Image from 'next/image'
 type FormData = {
   organizations: string[];
   project_name: string;
-  your_name: string;
   email: string;
+  your_name: string;
   main_focus: string;
   short_description: string;
   potential_impact: string;
@@ -32,6 +32,20 @@ type FormData = {
   bios?: string;
   years_experience?: string;
   anything_else?: string;
+  project_focus?: string;
+  name?: string;
+  pseudonym?: string;
+  detailed_description?: string;
+  hrf_mission_relation?: string;
+  why_fund?: string;
+  measure_success?: string;
+  project_links?: string;
+  is_open_source?: string;
+  annual_budget?: string;
+  funding_amount?: string;
+  funding_usage?: string;
+  prior_funding?: string;
+  social_media?: string;
 }
 
 // Define option type for select inputs
@@ -58,7 +72,7 @@ type DebugInfo = {
   message?: string;
 };
 
-export default function GrantApplicationForm() {
+export default function GrantApplicationForm({ preselectedOrgs }: { preselectedOrgs?: string[] }) {
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -80,18 +94,61 @@ export default function GrantApplicationForm() {
   const {
     register,
     handleSubmit,
+    control,
+    setValue,
     watch,
     trigger,
-    formState: { errors }
+    formState: { errors, isSubmitting },
   } = useForm<FormData>({
-    mode: 'onChange',
     defaultValues: {
-      organizations: []
-    }
-  })
+      organizations: preselectedOrgs || [],
+      project_name: "",
+      email: "",
+      your_name: "",
+      main_focus: "",
+      short_description: "",
+      potential_impact: "",
+      website: "",
+      github: "",
+      personal_github: "",
+      free_open_source: false,
+      license: "",
+      duration: "",
+      timelines: "",
+      commitment: "",
+      proposed_budget: "",
+      has_received_funding: false,
+      what_funding: "",
+      are_you_lead: false,
+      other_lead: "",
+      other_contact: "",
+      references: "",
+      bios: "",
+      years_experience: "",
+      anything_else: "",
+      project_focus: "",
+      name: "",
+      pseudonym: "",
+      detailed_description: "",
+      hrf_mission_relation: "",
+      why_fund: "",
+      measure_success: "",
+      project_links: "",
+      is_open_source: "",
+      annual_budget: "",
+      funding_amount: "",
+      funding_usage: "",
+      prior_funding: "",
+      social_media: ""
+    },
+  });
 
   const isFLOSS = watch('free_open_source', false)
   const selectedOrgs = watch('organizations', [])
+  
+  // Check if specific organizations are selected
+  const isHRFSelected = selectedOrgs.includes('hrf')
+  const isOpenSatsSelected = selectedOrgs.includes('opensats')
   
   // Define form sections
   const formSections = [
@@ -105,15 +162,33 @@ export default function GrantApplicationForm() {
     { id: "other", label: "Other Info", ref: otherInfoRef }
   ];
   
-  // Required fields by section
+  // Required fields by section and organization
   const requiredFieldsBySection = {
     0: ['organizations'],
-    1: ['main_focus', 'project_name', 'short_description', 'potential_impact'],
-    2: ['free_open_source', 'license'],
-    3: ['duration', 'timelines', 'commitment'],
-    4: ['proposed_budget'],
-    5: ['your_name', 'email'],
-    6: ['references'],
+    1: isOpenSatsSelected 
+       ? ['main_focus', 'project_name', 'short_description', 'potential_impact'] 
+       : isHRFSelected 
+         ? ['project_focus', 'project_name', 'detailed_description', 'short_description'] 
+         : ['project_name'],
+    2: isOpenSatsSelected 
+       ? ['free_open_source', 'license'] 
+       : isHRFSelected 
+         ? ['is_open_source', 'project_links'] 
+         : [],
+    3: isOpenSatsSelected 
+       ? ['duration', 'timelines', 'commitment'] 
+       : [],
+    4: isOpenSatsSelected 
+       ? ['proposed_budget'] 
+       : isHRFSelected 
+         ? ['annual_budget', 'funding_amount', 'funding_usage', 'prior_funding'] 
+         : [],
+    5: isOpenSatsSelected 
+       ? ['your_name', 'email'] 
+       : isHRFSelected 
+         ? ['name', 'email', 'pseudonym', 'social_media'] 
+         : ['email'],
+    6: isOpenSatsSelected || isHRFSelected ? ['references'] : [],
     7: []
   };
   
@@ -215,65 +290,57 @@ export default function GrantApplicationForm() {
     setError(null)
     setDebugInfo(null)
     
-    // Add custom client-side validation logic
-    const validationErrors = validateAllFields();
-    
-    // Check if at least one organization with implemented workflow is selected
-    if (!data.organizations.some(orgId => organizations[orgId]?.workflowImplemented === true)) {
-      validationErrors.organizations = "Please select at least one available organization";
-    }
-    
-    // Check if there are any validation errors
-    if (Object.keys(validationErrors).length > 0) {
-      setError("Some required fields are missing or invalid. Please check the form and try again.");
-      setDebugInfo({ validationErrors });
-      setLoading(false);
-      return;
-    }
-    
     try {
       console.log('Submitting form data:', data);
       
-      // Filter out organizations that don't have workflows implemented
-      const submittableOrgs = data.organizations.filter(
-        orgId => organizations[orgId]?.workflowImplemented === true
-      );
+      // Prepare submission results for all selected organizations
+      const submissionResults: Record<string, any> = {}
+      let hasError = false
       
-      const response = await axios.post('/api/submit', {
-        organizations: submittableOrgs,
-        application: data
-      })
-      
-      console.log('API response:', response.data);
-      
-      if (response.data.success) {
-        setSubmitted(true)
-        // Store any debug info received
-        if (response.data.data) {
-          setDebugInfo(response.data.data)
-        }
-      } else {
-        setError(response.data.message || 'Failed to submit application')
-        if (response.data.error) {
-          setDebugInfo(response.data.error)
+      // Submit to each selected organization
+      for (const orgId of data.organizations) {
+        if (organizations[orgId]?.workflowImplemented) {
+          try {
+            const response = await axios.post('/api/submit', {
+              organizations: [orgId],
+              application: data
+            })
+            
+            console.log(`API response for ${orgId}:`, response.data);
+            
+            if (response.data.success) {
+              submissionResults[orgId] = { success: true, data: response.data.data };
+            } else {
+              submissionResults[orgId] = { success: false, error: response.data.error || response.data.message };
+              hasError = true;
+            }
+          } catch (error: any) {
+            console.error(`Error submitting to ${orgId}:`, error);
+            submissionResults[orgId] = { 
+              success: false, 
+              error: error.response?.data?.error || error.message || 'An error occurred' 
+            };
+            hasError = true;
+          }
         }
       }
-    } catch (err: unknown) {
-      const error = err as Error & { response?: { status?: number; data?: unknown } }
-      console.error('Error submitting form:', error)
-      setError('Failed to submit application. Please try again later.')
       
-      // Capture any error response details for debugging
-      if (error.response) {
-        setDebugInfo({
-          status: error.response.status,
-          data: error.response.data
-        })
+      // Set the overall submission status
+      if (hasError) {
+        setError('There were issues with one or more organization submissions');
+        setDebugInfo(submissionResults);
       } else {
-        setDebugInfo({ message: error.message })
+        setSubmitted(true);
+        setDebugInfo(submissionResults);
+      }
+    } catch (error: any) {
+      console.error('Error in form submission:', error);
+      setError(error.message || 'An unexpected error occurred');
+      if (error.response?.data) {
+        setDebugInfo(error.response.data);
       }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -638,6 +705,13 @@ export default function GrantApplicationForm() {
     );
   };
 
+  // Set preselected organizations on mount if provided
+  useEffect(() => {
+    if (preselectedOrgs && preselectedOrgs.length > 0) {
+      setValue('organizations', preselectedOrgs);
+    }
+  }, [preselectedOrgs, setValue]);
+
   if (submitted) {
     return (
       <div className="bg-green-50 p-8 rounded-lg border border-green-200 shadow-sm animate-fadeIn">
@@ -710,28 +784,187 @@ export default function GrantApplicationForm() {
         <div ref={projectDetailsRef}>
           <SectionDivider title="Project Details" />
           
-          <FormInput
-            label="Main Focus"
-            description="In which area will your project have the most impact?"
-            required={true}
-            register={register}
-            name="main_focus"
-            error={errors.main_focus}
-            options={focusOptions}
-          />
+          {/* Focus field - show either OpenSats or HRF version but not both */}
+          {(isOpenSatsSelected || isHRFSelected) && (
+            <div className="mb-8">
+              <div className="flex justify-between mb-2">
+                <label className="block text-gray-800 font-medium text-base">
+                  {isHRFSelected && !isOpenSatsSelected 
+                    ? "What is your project area of focus?" 
+                    : "Main Focus"} <span className="text-red-500 ml-1">*</span>
+                </label>
+                
+                {/* Show organization indicators for HRF-specific field */}
+                {isHRFSelected && !isOpenSatsSelected && (
+                  <div className="flex items-center bg-blue-50 px-2 py-1 rounded text-xs text-blue-600">
+                    <span className="font-medium mr-1">HRF</span>
+                    {organizations.hrf.logo && (
+                      <Image 
+                        src={organizations.hrf.logo} 
+                        alt="HRF logo" 
+                        width={16} 
+                        height={16} 
+                        className="inline-block"
+                      />
+                    )}
+                  </div>
+                )}
+                
+                {/* Show organization indicators for OpenSats-specific field */}
+                {isOpenSatsSelected && !isHRFSelected && (
+                  <div className="flex items-center bg-blue-50 px-2 py-1 rounded text-xs text-blue-600">
+                    <span className="font-medium mr-1">OpenSats</span>
+                    {organizations.opensats.logo && (
+                      <Image 
+                        src={organizations.opensats.logo} 
+                        alt="OpenSats logo" 
+                        width={16} 
+                        height={16} 
+                        className="inline-block"
+                      />
+                    )}
+                  </div>
+                )}
+                
+                {/* Show multiple organizations if both selected */}
+                {isOpenSatsSelected && isHRFSelected && (
+                  <div className="flex items-center bg-blue-50 px-2 py-1 rounded text-xs text-blue-600">
+                    <span className="font-medium mr-1">Required by</span>
+                    <div className="flex space-x-1">
+                      {organizations.opensats.logo && (
+                        <Image 
+                          src={organizations.opensats.logo} 
+                          alt="OpenSats logo" 
+                          width={16} 
+                          height={16} 
+                          className="inline-block"
+                        />
+                      )}
+                      {organizations.hrf.logo && (
+                        <Image 
+                          src={organizations.hrf.logo} 
+                          alt="HRF logo" 
+                          width={16} 
+                          height={16} 
+                          className="inline-block"
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              <p className="text-gray-600 text-sm mb-3">
+                {isHRFSelected && !isOpenSatsSelected
+                  ? "" 
+                  : "In which area will your project have the most impact?"}
+              </p>
+              
+              {isHRFSelected && !isOpenSatsSelected ? (
+                <div className="relative">
+                  <select 
+                    className={`w-full px-4 py-3 border rounded-lg transition-all duration-200 focus:ring-3 focus:outline-none bg-white text-gray-900 appearance-none pr-10 ${
+                      errors.project_focus ? 'border-red-500 bg-red-50 focus:ring-red-200' : 
+                      'border-gray-300 hover:border-gray-400 focus:border-blue-500 focus:ring-blue-100'
+                    }`}
+                    {...register("project_focus", { required: true })}
+                    aria-invalid={errors.project_focus ? "true" : "false"}
+                  >
+                    <option value="">Select an option</option>
+                    <option value="Lightning Network">Lightning Network</option>
+                    <option value="Bitcoin Core">Bitcoin Core</option>
+                    <option value="Nostr">Nostr</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                    <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+              ) : (
+                <div className="relative">
+                  <select 
+                    className={`w-full px-4 py-3 border rounded-lg transition-all duration-200 focus:ring-3 focus:outline-none bg-white text-gray-900 appearance-none pr-10 ${
+                      errors.main_focus ? 'border-red-500 bg-red-50 focus:ring-red-200' : 
+                      'border-gray-300 hover:border-gray-400 focus:border-blue-500 focus:ring-blue-100'
+                    }`}
+                    {...register("main_focus", { required: true })}
+                    aria-invalid={errors.main_focus ? "true" : "false"}
+                  >
+                    <option value="">(Choose One)</option>
+                    <option value="core">Bitcoin Core</option>
+                    <option value="education">Education</option>
+                    <option value="layer1">Layer1 / Bitcoin</option>
+                    <option value="layer2">Layer2 / Lightning</option>
+                    <option value="eCash">Layer3 / eCash</option>
+                    <option value="nostr">Nostr</option>
+                    <option value="other">Other</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                    <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+              )}
+              
+              {((errors.main_focus && isOpenSatsSelected) || (errors.project_focus && isHRFSelected)) && (
+                <div className="mt-2 flex items-start text-red-600">
+                  <svg className="h-5 w-5 flex-shrink-0 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clipRule="evenodd" />
+                  </svg>
+                  <p className="text-sm">This field is required</p>
+                </div>
+              )}
+            </div>
+          )}
           
+          {/* Project Name - common field for both orgs */}
           <FormInput
-            label="Project Name"
-            description="The name of the project. Abbreviations are fine too."
+            label={isHRFSelected && !isOpenSatsSelected ? "What is your project name?" : "Project Name"}
+            description={!isHRFSelected ? "The name of the project. Abbreviations are fine too." : ""}
             required={true}
             register={register}
             name="project_name"
             error={errors.project_name}
           />
           
+          {/* Detailed description - HRF only */}
+          {isHRFSelected && (
+            <div className="relative">
+              <FormInput
+                label="Please provide a detailed project description."
+                required={isHRFSelected}
+                type="textarea"
+                register={register}
+                name="detailed_description"
+                placeholder="Provide a comprehensive description of your project, including its purpose, functionality, and implementation details."
+                error={errors.detailed_description}
+              />
+              {/* HRF indicator */}
+              <div className="absolute top-0 right-0 flex items-center bg-blue-50 px-2 py-1 rounded text-xs text-blue-600">
+                <span className="font-medium mr-1">HRF</span>
+                {organizations.hrf.logo && (
+                  <Image 
+                    src={organizations.hrf.logo} 
+                    alt="HRF logo" 
+                    width={16} 
+                    height={16} 
+                    className="inline-block"
+                  />
+                )}
+              </div>
+            </div>
+          )}
+          
+          {/* Short description - common field with different labels */}
           <FormInput
-            label="Project Description"
-            description="A great description will help us to evaluate your project more quickly."
+            label={isHRFSelected && !isOpenSatsSelected
+              ? "Please provide a short project description in 1-2 sentences." 
+              : "Project Description"}
+            description={isHRFSelected && !isOpenSatsSelected
+              ? "This will help us understand and explain your project in a concise manner" 
+              : "A great description will help us to evaluate your project more quickly."}
             required={true}
             type="textarea"
             register={register}
@@ -740,25 +973,141 @@ export default function GrantApplicationForm() {
             placeholder="Provide a clear and concise description of your project, including its purpose, who it serves, and what problem it solves."
           />
           
-          <FormInput
-            label="Potential Impact"
-            description="Why is this project important to Bitcoin or the broader free and open-source community?"
-            required={true}
-            type="textarea"
-            register={register}
-            name="potential_impact"
-            error={errors.potential_impact}
-            placeholder="Describe how your project will benefit the Bitcoin ecosystem or open-source community. Include potential use cases, user base, and long-term impact."
-          />
+          {/* Potential Impact - OpenSats only */}
+          {isOpenSatsSelected && (
+            <div className="relative">
+              <FormInput
+                label="Potential Impact"
+                description="Why is this project important to Bitcoin or the broader free and open-source community?"
+                required={isOpenSatsSelected}
+                type="textarea"
+                register={register}
+                name="potential_impact"
+                error={errors.potential_impact}
+                placeholder="Describe how your project will benefit the Bitcoin ecosystem or open-source community. Include potential use cases, user base, and long-term impact."
+              />
+              {/* OpenSats indicator */}
+              <div className="absolute top-0 right-0 flex items-center bg-blue-50 px-2 py-1 rounded text-xs text-blue-600">
+                <span className="font-medium mr-1">OpenSats</span>
+                {organizations.opensats.logo && (
+                  <Image 
+                    src={organizations.opensats.logo} 
+                    alt="OpenSats logo" 
+                    width={16} 
+                    height={16} 
+                    className="inline-block"
+                  />
+                )}
+              </div>
+            </div>
+          )}
           
-          <FormInput
-            label="Project Website"
-            description="If you have a website or a project page, please provide the URL."
-            register={register}
-            name="website"
-            placeholder="https://"
-            error={errors.website}
-          />
+          {/* HRF specific fields */}
+          {isHRFSelected && (
+            <>
+              <div className="relative">
+                <FormInput
+                  label="How does your project relate to HRF's mission?"
+                  required={isHRFSelected}
+                  type="textarea"
+                  register={register}
+                  name="hrf_mission_relation"
+                  placeholder="Explain how your project aligns with HRF's mission of promoting human rights and civil liberties"
+                  error={errors.hrf_mission_relation}
+                />
+                {/* HRF indicator */}
+                <div className="absolute top-0 right-0 flex items-center bg-blue-50 px-2 py-1 rounded text-xs text-blue-600">
+                  <span className="font-medium mr-1">HRF</span>
+                  {organizations.hrf.logo && (
+                    <Image 
+                      src={organizations.hrf.logo} 
+                      alt="HRF logo" 
+                      width={16} 
+                      height={16} 
+                      className="inline-block"
+                    />
+                  )}
+                </div>
+              </div>
+              
+              <div className="relative">
+                <FormInput
+                  label="Why should HRF fund your project?"
+                  required={isHRFSelected}
+                  type="textarea"
+                  register={register}
+                  name="why_fund"
+                  placeholder="Explain the impact and importance of your project and why it deserves funding"
+                  error={errors.why_fund}
+                />
+                {/* HRF indicator */}
+                <div className="absolute top-0 right-0 flex items-center bg-blue-50 px-2 py-1 rounded text-xs text-blue-600">
+                  <span className="font-medium mr-1">HRF</span>
+                  {organizations.hrf.logo && (
+                    <Image 
+                      src={organizations.hrf.logo} 
+                      alt="HRF logo" 
+                      width={16} 
+                      height={16} 
+                      className="inline-block"
+                    />
+                  )}
+                </div>
+              </div>
+              
+              <div className="relative">
+                <FormInput
+                  label="How do you measure success of your project?"
+                  required={isHRFSelected}
+                  type="textarea"
+                  register={register}
+                  name="measure_success"
+                  placeholder="Describe the metrics, milestones, or outcomes that will indicate your project's success"
+                  error={errors.measure_success}
+                />
+                {/* HRF indicator */}
+                <div className="absolute top-0 right-0 flex items-center bg-blue-50 px-2 py-1 rounded text-xs text-blue-600">
+                  <span className="font-medium mr-1">HRF</span>
+                  {organizations.hrf.logo && (
+                    <Image 
+                      src={organizations.hrf.logo} 
+                      alt="HRF logo" 
+                      width={16} 
+                      height={16} 
+                      className="inline-block"
+                    />
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+          
+          {/* Website - OpenSats only */}
+          {isOpenSatsSelected && (
+            <div className="relative">
+              <FormInput
+                label="Project Website"
+                description="If you have a website or a project page, please provide the URL."
+                register={register}
+                name="website"
+                placeholder="https://"
+                error={errors.website}
+              />
+              {/* OpenSats indicator */}
+              <div className="absolute top-0 right-0 flex items-center bg-blue-50 px-2 py-1 rounded text-xs text-blue-600">
+                <span className="font-medium mr-1">OpenSats</span>
+                {organizations.opensats.logo && (
+                  <Image 
+                    src={organizations.opensats.logo} 
+                    alt="OpenSats logo" 
+                    width={16} 
+                    height={16} 
+                    className="inline-block"
+                  />
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -767,31 +1116,204 @@ export default function GrantApplicationForm() {
         <div ref={sourceCodeRef}>
           <SectionDivider title="Source Code" />
           
-          <FormInput
-            label="Repository (GitHub or similar, if applicable)"
-            register={register}
-            name="github"
-            error={errors.github}
-          />
+          {/* GitHub repository - we combine both OpenSats and HRF versions */}
+          {(isOpenSatsSelected || isHRFSelected) && (
+            <div className="mb-8">
+              <div className="flex justify-between mb-2">
+                <label className="block text-gray-800 font-medium text-base">
+                  {isHRFSelected && !isOpenSatsSelected 
+                    ? "Please list your project Github, project social media accounts, and project websites if applicable" 
+                    : "Repository Information"}
+                </label>
+                
+                {/* Show organization indicators */}
+                <div className="flex items-center bg-blue-50 px-2 py-1 rounded text-xs text-blue-600">
+                  <span className="font-medium mr-1">
+                    {isOpenSatsSelected && isHRFSelected 
+                      ? "Required by" 
+                      : isHRFSelected 
+                        ? "HRF" 
+                        : "OpenSats"}
+                  </span>
+                  <div className="flex space-x-1">
+                    {isOpenSatsSelected && organizations.opensats.logo && (
+                      <Image 
+                        src={organizations.opensats.logo} 
+                        alt="OpenSats logo" 
+                        width={16} 
+                        height={16} 
+                        className="inline-block"
+                      />
+                    )}
+                    {isHRFSelected && organizations.hrf.logo && (
+                      <Image 
+                        src={organizations.hrf.logo} 
+                        alt="HRF logo" 
+                        width={16} 
+                        height={16} 
+                        className="inline-block"
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              {!isHRFSelected || isOpenSatsSelected ? (
+                // OpenSats version - simple text input
+                <input 
+                  className={`w-full px-4 py-3 border rounded-lg transition-all duration-200 focus:ring-3 focus:outline-none bg-white text-gray-900 ${
+                    errors.github ? 'border-red-500 bg-red-50 focus:ring-red-200' : 
+                    'border-gray-300 hover:border-gray-400 focus:border-blue-500 focus:ring-blue-100'
+                  }`}
+                  {...register("github")}
+                  aria-invalid={errors.github ? "true" : "false"}
+                  placeholder="https://github.com/your-project"
+                />
+              ) : (
+                // HRF version - textarea for multiple links
+                <textarea 
+                  className={`w-full px-4 py-3 border rounded-lg transition-all duration-200 focus:ring-3 focus:outline-none bg-white text-gray-900 min-h-[120px] ${
+                    errors.project_links ? 'border-red-500 bg-red-50 focus:ring-red-200' : 
+                    'border-gray-300 hover:border-gray-400 focus:border-blue-500 focus:ring-blue-100'
+                  }`}
+                  {...register("project_links")}
+                  aria-invalid={errors.project_links ? "true" : "false"}
+                  placeholder="GitHub: https://github.com/your-project&#10;Website: https://your-project.com&#10;Twitter: @yourproject"
+                  rows={5}
+                ></textarea>
+              )}
+              
+              {((errors.github && isOpenSatsSelected) || (errors.project_links && isHRFSelected)) && (
+                <div className="mt-2 flex items-start text-red-600">
+                  <svg className="h-5 w-5 flex-shrink-0 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clipRule="evenodd" />
+                  </svg>
+                  <p className="text-sm">This field is required</p>
+                </div>
+              )}
+            </div>
+          )}
           
-          <FormInput
-            label="Is the project free and open-source?"
-            required={true}
-            type="checkbox"
-            register={register}
-            name="free_open_source"
-            error={errors.free_open_source}
-            placeholder=""
-          />
+          {/* Open Source status - combine both org versions */}
+          {(isOpenSatsSelected || isHRFSelected) && (
+            <div className="mb-8">
+              <div className="flex justify-between mb-2">
+                <label className="block text-gray-800 font-medium text-base">
+                  Is the project Free and Open Source? <span className="text-red-500 ml-1">*</span>
+                </label>
+                
+                {/* Show organization indicators */}
+                <div className="flex items-center bg-blue-50 px-2 py-1 rounded text-xs text-blue-600">
+                  <span className="font-medium mr-1">
+                    {isOpenSatsSelected && isHRFSelected 
+                      ? "Required by" 
+                      : isHRFSelected 
+                        ? "HRF" 
+                        : "OpenSats"}
+                  </span>
+                  <div className="flex space-x-1">
+                    {isOpenSatsSelected && organizations.opensats.logo && (
+                      <Image 
+                        src={organizations.opensats.logo} 
+                        alt="OpenSats logo" 
+                        width={16} 
+                        height={16} 
+                        className="inline-block"
+                      />
+                    )}
+                    {isHRFSelected && organizations.hrf.logo && (
+                      <Image 
+                        src={organizations.hrf.logo} 
+                        alt="HRF logo" 
+                        width={16} 
+                        height={16} 
+                        className="inline-block"
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              {!isHRFSelected || isOpenSatsSelected ? (
+                // OpenSats version - checkbox
+                <div className={`flex items-center p-3 rounded-lg border transition-colors ${
+                  errors.free_open_source ? 'bg-red-50 border-red-200' :
+                  'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                }`}>
+                  <input
+                    type="checkbox"
+                    id="checkbox-free_open_source"
+                    className={`h-5 w-5 rounded border-gray-300 transition-colors ${
+                      errors.free_open_source ? 'text-red-600 focus:ring-red-500' : 'text-blue-600 focus:ring-blue-500'
+                    }`}
+                    {...register("free_open_source", { required: isOpenSatsSelected })}
+                    aria-invalid={errors.free_open_source ? "true" : "false"}
+                  />
+                  <label htmlFor="checkbox-free_open_source" className="ml-3 text-gray-700 cursor-pointer">
+                    Yes, this project is Free and Open Source
+                  </label>
+                </div>
+              ) : (
+                // HRF version - dropdown
+                <div className="relative">
+                  <select 
+                    className={`w-full px-4 py-3 border rounded-lg transition-all duration-200 focus:ring-3 focus:outline-none bg-white text-gray-900 appearance-none pr-10 ${
+                      errors.is_open_source ? 'border-red-500 bg-red-50 focus:ring-red-200' : 
+                      'border-gray-300 hover:border-gray-400 focus:border-blue-500 focus:ring-blue-100'
+                    }`}
+                    {...register("is_open_source", { required: isHRFSelected })}
+                    aria-invalid={errors.is_open_source ? "true" : "false"}
+                  >
+                    <option value="">Select an option</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                    <option value="N/A">N/A</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                    <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+              )}
+              
+              {((errors.free_open_source && isOpenSatsSelected) || (errors.is_open_source && isHRFSelected)) && (
+                <div className="mt-2 flex items-start text-red-600">
+                  <svg className="h-5 w-5 flex-shrink-0 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clipRule="evenodd" />
+                  </svg>
+                  <p className="text-sm">This field is required</p>
+                </div>
+              )}
+            </div>
+          )}
           
-          <FormInput
-            label="Open-Source License"
-            description="Projects must have a proper open-source license & educational materials must be available to the public under a free and open license."
-            required={true}
-            register={register}
-            name="license"
-            error={errors.license}
-          />
+          {/* License field - OpenSats only */}
+          {isOpenSatsSelected && (
+            <div className="relative">
+              <FormInput
+                label="Open-Source License"
+                description="Projects must have a proper open-source license & educational materials must be available to the public under a free and open license."
+                required={isOpenSatsSelected}
+                register={register}
+                name="license"
+                error={errors.license}
+              />
+              {/* OpenSats indicator */}
+              <div className="absolute top-0 right-0 flex items-center bg-blue-50 px-2 py-1 rounded text-xs text-blue-600">
+                <span className="font-medium mr-1">OpenSats</span>
+                {organizations.opensats.logo && (
+                  <Image 
+                    src={organizations.opensats.logo} 
+                    alt="OpenSats logo" 
+                    width={16} 
+                    height={16} 
+                    className="inline-block"
+                  />
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -838,31 +1360,77 @@ export default function GrantApplicationForm() {
         <div ref={budgetRef}>
           <SectionDivider title="Project Budget" />
           
-          <FormInput
-            label="Costs & Proposed Budget"
-            description="Current or estimated costs of the project. Please submit a proposed budget (in USD) around how much funding you are requesting and how it will be used."
-            required={true}
-            type="textarea"
-            register={register}
-            name="proposed_budget"
-            error={errors.proposed_budget}
-            placeholder="Break down your budget needs in detail (e.g., development costs, hardware, hosting, etc.). Specify how much funding you are requesting in USD and provide justification for each expense."
-          />
+          {isOpenSatsSelected && (
+            <>
+              <FormInput
+                label="Costs & Proposed Budget"
+                description="Current or estimated costs of the project. Please submit a proposed budget (in USD) around how much funding you are requesting and how it will be used."
+                required={isOpenSatsSelected}
+                type="textarea"
+                register={register}
+                name="proposed_budget"
+                error={errors.proposed_budget}
+                placeholder="Break down your budget needs in detail (e.g., development costs, hardware, hosting, etc.). Specify how much funding you are requesting in USD and provide justification for each expense."
+              />
+              
+              <FormInput
+                label="Has this project received any prior funding?"
+                type="checkbox"
+                register={register}
+                name="has_received_funding"
+                error={errors.has_received_funding}
+              />
+              
+              <FormInput
+                label="If so, please describe."
+                register={register}
+                name="what_funding"
+                error={errors.what_funding}
+              />
+            </>
+          )}
           
-          <FormInput
-            label="Has this project received any prior funding?"
-            type="checkbox"
-            register={register}
-            name="has_received_funding"
-            error={errors.has_received_funding}
-          />
-          
-          <FormInput
-            label="If so, please describe."
-            register={register}
-            name="what_funding"
-            error={errors.what_funding}
-          />
+          {isHRFSelected && (
+            <>
+              <FormInput
+                label="What is your annual project budget?"
+                register={register}
+                name="annual_budget"
+                placeholder="e.g., $50,000"
+                error={errors.annual_budget}
+                required={isHRFSelected}
+              />
+              
+              <FormInput
+                label="How much funding are you hoping to secure with this BDF Grant?"
+                required={isHRFSelected}
+                register={register}
+                name="funding_amount"
+                placeholder="e.g., $10,000"
+                error={errors.funding_amount}
+              />
+              
+              <FormInput
+                label="Please describe what funding will be used towards."
+                required={isHRFSelected}
+                type="textarea"
+                register={register}
+                name="funding_usage"
+                placeholder="Provide a breakdown of how you plan to use the grant funding"
+                error={errors.funding_usage}
+              />
+              
+              <FormInput
+                label="Has this project received any prior funding? If yes, please describe."
+                type="textarea"
+                register={register}
+                name="prior_funding"
+                placeholder="List any previous funding sources and amounts"
+                error={errors.prior_funding}
+                required={isHRFSelected}
+              />
+            </>
+          )}
         </div>
       )}
 
@@ -871,15 +1439,44 @@ export default function GrantApplicationForm() {
         <div ref={applicantRef}>
           <SectionDivider title="Applicant Details" />
           
-          <FormInput
-            label="Your Name"
-            description="Feel free to use your nym."
-            required={true}
-            register={register}
-            name="your_name"
-            placeholder="John Doe"
-            error={errors.your_name}
-          />
+          {isOpenSatsSelected && (
+            <FormInput
+              label="Your Name"
+              description="Feel free to use your nym."
+              required={isOpenSatsSelected}
+              register={register}
+              name="your_name"
+              placeholder="John Doe"
+              error={errors.your_name}
+            />
+          )}
+          
+          {isHRFSelected && (
+            <>
+              <FormInput
+                label="What is your name?"
+                description="Please let us know the name you want use to use for public reference."
+                required={isHRFSelected}
+                register={register}
+                name="name"
+                placeholder="Enter your name"
+                error={errors.name}
+              />
+              
+              <FormInput
+                label="Do you use/prefer a pseudonym?"
+                register={register}
+                name="pseudonym"
+                options={[
+                  { value: "Yes", label: "Yes" },
+                  { value: "No", label: "No" }
+                ]}
+                error={errors.pseudonym}
+                description="If you select No, we will use your real name in public reference to the grant."
+                required={isHRFSelected}
+              />
+            </>
+          )}
           
           <FormInput
             label="Email"
@@ -891,84 +1488,110 @@ export default function GrantApplicationForm() {
             error={errors.email}
           />
           
-          <FormInput
-            label="Are you the Project Lead / Lead Contributor?"
-            type="checkbox"
-            register={register}
-            name="are_you_lead"
-            error={errors.are_you_lead}
-          />
+          {isHRFSelected && (
+            <FormInput
+              label="What are your social media handles?"
+              type="textarea"
+              register={register}
+              name="social_media"
+              placeholder="Twitter: @yourhandle\nNostr: npub...\nOther platforms..."
+              error={errors.social_media}
+            />
+          )}
           
-          <FormInput
-            label="If someone else, please list the project's Lead Contributor or Maintainer"
-            register={register}
-            name="other_lead"
-            error={errors.other_lead}
-          />
-          
-          <FormInput
-            label="Personal Github (or similar, if applicable)"
-            register={register}
-            name="personal_github"
-            error={errors.personal_github}
-          />
-          
-          <FormInput
-            label="Other Contact Details (if applicable)"
-            description="Please list any other relevant contact details you are comfortable sharing in case we need to reach out with questions. These could include nostr pubkeys, social media handles, etc."
-            type="textarea"
-            register={register}
-            name="other_contact"
-            error={errors.other_contact}
-          />
+          {isOpenSatsSelected && (
+            <>
+              <FormInput
+                label="Are you the Project Lead / Lead Contributor?"
+                type="checkbox"
+                register={register}
+                name="are_you_lead"
+                error={errors.are_you_lead}
+              />
+              
+              <FormInput
+                label="If someone else, please list the project's Lead Contributor or Maintainer"
+                register={register}
+                name="other_lead"
+                error={errors.other_lead}
+              />
+              
+              <FormInput
+                label="Personal Github (or similar, if applicable)"
+                register={register}
+                name="personal_github"
+                error={errors.personal_github}
+              />
+              
+              <FormInput
+                label="Other Contact Details (if applicable)"
+                description="Please list any other relevant contact details you are comfortable sharing in case we need to reach out with questions. These could include nostr pubkeys, social media handles, etc."
+                type="textarea"
+                register={register}
+                name="other_contact"
+                error={errors.other_contact}
+              />
+            </>
+          )}
         </div>
       )}
 
       {/* References - Step 6 */}
       {currentStep === 6 && (
         <div ref={referencesRef}>
-          <SectionDivider title="References & Prior Contributions" />
+          <SectionDivider title="References" />
           
           <FormInput
-            label="References"
-            description="Please list any references from the Bitcoin community or open-source space that we could contact for more information on you or your project."
-            required={true}
+            label={isHRFSelected 
+              ? "Please list the name + email of two references we can contact regarding your project." 
+              : "References"}
+            description={isHRFSelected 
+              ? "Alternatively have references email letters of recommendation to bdf@hrf.org with your project name + the reference's name" 
+              : "Please provide names and contact information for people familiar with your work who can vouch for your skills and reliability."}
+            required={isOpenSatsSelected || isHRFSelected}
             type="textarea"
             register={register}
             name="references"
             error={errors.references}
-            placeholder="Include names, roles, relationship to you, and contact information (with permission). At least 2-3 references are recommended."
+            placeholder="1. Name: John Doe\n   Email: john@example.com\n\n2. Name: Jane Smith\n   Email: jane@example.com"
           />
           
-          <FormInput
-            label="Prior Contributions"
-            description="Please list any prior contributions to other open-source or Bitcoin-related projects."
-            type="textarea"
-            register={register}
-            name="bios"
-            error={errors.bios}
-          />
-          
-          <FormInput
-            label="Years of Developer Experience"
-            register={register}
-            name="years_experience"
-            error={errors.years_experience}
-          />
+          {isOpenSatsSelected && (
+            <>
+              <FormInput
+                label="Team Members' Bios"
+                description="Short biographies of key contributors to the project. Include relevant experience and skills."
+                type="textarea"
+                register={register}
+                name="bios"
+                error={errors.bios}
+              />
+              
+              <FormInput
+                label="Years of Experience"
+                description="How many years have you been working in this field or on similar projects?"
+                register={register}
+                name="years_experience"
+                error={errors.years_experience}
+              />
+            </>
+          )}
         </div>
       )}
 
-      {/* Final Step - Step 7 */}
+      {/* Other Info - Step 7 */}
       {currentStep === 7 && (
         <div ref={otherInfoRef}>
           <SectionDivider title="Anything Else We Should Know?" />
           
           <FormInput
-            label="Feel free to share whatever else might be important."
+            label={isHRFSelected 
+              ? "Feel free to provide any other information you would like us to know." 
+              : "Feel free to share whatever else might be important."}
             type="textarea"
             register={register}
-            name="anything_else"
-            error={errors.anything_else}
+            name={isHRFSelected ? "additional_info" as keyof FormData : "anything_else"}
+            error={isHRFSelected ? (errors as any).additional_info : errors.anything_else}
           />
           
           <div className="mt-6 mb-8 p-5 bg-gray-50 border border-gray-200 rounded-lg">
@@ -977,8 +1600,9 @@ export default function GrantApplicationForm() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
               <p className="text-gray-600 text-sm">
-                Each organization has its own grant agreement and terms. By submitting this application,
-                you agree to the terms and conditions of the selected organization.
+                {selectedOrgs.length > 1 
+                  ? "You've selected multiple organizations. Your application will be submitted to each organization you've selected." 
+                  : "Each organization has its own grant agreement and terms. By submitting this application, you agree to the terms and conditions of the selected organization."}
               </p>
             </div>
           </div>
