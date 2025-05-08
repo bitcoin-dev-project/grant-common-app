@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.ico',
   },
-  keywords: ['Bitcoin', 'grants', 'funding', 'cryptocurrency', 'open source', 'OpenSats', 'Brink', 'Btrust', 'HRF'],
+  keywords: ['Bitcoin', 'grants', 'funding', 'cryptocurrency', 'open source', 'OpenSats', 'Brink', 'Btrust', 'Maelstrom', 'Spiral'],
   authors: [{ name: 'Bitcoin Grants Common Application' }],
   openGraph: {
     type: 'website',

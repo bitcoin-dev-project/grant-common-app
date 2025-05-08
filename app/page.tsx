@@ -30,10 +30,16 @@ export default function Home() {
       accentColor: "bg-purple-600",
     },
     {
-      name: "HRF",
-      logo: "/logos/hrf.png",
-      description: "Promoting human rights and freedom through Bitcoin technology and education.",
-      accentColor: "bg-red-600",
+      name: "Maelstrom",
+      logo: "/logos/maelstrom.png",
+      description: "Supporting Bitcoin developers to enhance Bitcoin's resilience, scalability, censorship resistance and privacy.",
+      accentColor: "bg-blue-600",
+    },
+    {
+      name: "Spiral",
+      logo: "/logos/spiral.svg",
+      description: "Making bitcoin more than an investment through FOSS Bitcoin Grants for developers and designers.",
+      accentColor: "bg-yellow-600",
     },
   ];
 
@@ -87,10 +93,21 @@ export default function Home() {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {organizations.map((org, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {organizations.slice(0, 3).map((org, index) => (
               <FeaturedOrg 
                 key={index}
+                name={org.name} 
+                logo={org.logo} 
+                description={org.description} 
+                accentColor={org.accentColor}
+              />
+            ))}
+          </div>
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {organizations.slice(3).map((org, index) => (
+              <FeaturedOrg 
+                key={index + 3}
                 name={org.name} 
                 logo={org.logo} 
                 description={org.description} 

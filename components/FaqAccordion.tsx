@@ -75,7 +75,7 @@ export default function FaqAccordion() {
       question: "Which organizations participate in the common application?",
       answer: (
         <p>
-          Currently, the common application serves four major Bitcoin funding organizations: OpenSats, Btrust, Brink, and Human Rights Foundation (HRF). Each organization has its own focus areas and evaluation criteria.
+          Currently, the common application serves five major Bitcoin funding organizations: OpenSats, Btrust, Brink, Maelstrom, and Spiral. Each organization has its own focus areas and evaluation criteria.
         </p>
       )
     },
