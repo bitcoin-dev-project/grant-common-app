@@ -4,7 +4,6 @@ const organizations = [
   { name: "OpenSats", link: "https://opensats.org" },
   { name: "Btrust", link: "https://btrust.tech" },
   { name: "Brink", link: "https://brink.dev" },
-  { name: "HRF", link: "https://hrf.org/programs/devfund" },
 ]
 
 const resources = [

@@ -38,16 +38,6 @@ const organizations: Record<string, Organization> = {
     active: true,
     workflowImplemented: false
   },
-  hrf: {
-    id: 'hrf',
-    name: 'Human Rights Foundation',
-    description: 'The Human Rights Foundation supports Bitcoin developers working on tools and technologies that enhance financial privacy and sovereignty.',
-    website: 'https://hrf.org/programs_posts/devfund/',
-    logo: '/logos/hrf.png',
-    apiUrl: process.env.HRF_MONDAY_API_URL || 'https://api.monday.com/v2',
-    active: true,
-    workflowImplemented: true
-  },
   // Placeholder for future organizations
   // spiralbtc: {
   //   id: 'spiralbtc',

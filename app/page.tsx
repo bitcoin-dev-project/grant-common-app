@@ -29,12 +29,6 @@ export default function Home() {
       description: "Supporting Bitcoin protocol developers and research to strengthen the Bitcoin network.",
       accentColor: "bg-purple-600",
     },
-    {
-      name: "HRF",
-      logo: "/logos/hrf.png",
-      description: "Promoting human rights and freedom through Bitcoin technology and education.",
-      accentColor: "bg-red-600",
-    },
   ];
 
   const processSteps = [
