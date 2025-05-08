@@ -38,25 +38,24 @@ const organizations: Record<string, Organization> = {
     active: true,
     workflowImplemented: false
   },
-  hrf: {
-    id: 'hrf',
-    name: 'Human Rights Foundation',
-    description: 'The Human Rights Foundation supports Bitcoin developers working on tools and technologies that enhance financial privacy and sovereignty.',
-    website: 'https://hrf.org/programs_posts/devfund/',
-    logo: '/logos/hrf.png',
+  maelstrom: {
+    id: 'maelstrom',
+    name: 'Maelstrom',
+    description: 'Maelstrom supports Bitcoin developers working on tools and technologies that enhance Bitcoin\'s resilience, scalability, censorship resistance and privacy characteristics.',
+    website: 'https://maelstrom.fund/bitcoin-grant-program/',
+    logo: '/logos/maelstrom.png',
     active: true,
     workflowImplemented: false
   },
-  // Placeholder for future organizations
-  // spiralbtc: {
-  //   id: 'spiralbtc',
-  //   name: 'Spiral',
-  //   description: 'Spiral (formerly Square Crypto) is a team funded by Block that supports Bitcoin development.',
-  //   website: 'https://spiral.xyz',
-  //   logo: '/logos/spiral.png',
-  //   apiUrl: 'https://api.spiral.xyz/applications',
-  //   active: false
-  // }
+  spiral: {
+    id: 'spiral',
+    name: 'Spiral',
+    description: 'Spiral is a team funded by Block that supports Bitcoin development through their FOSS Bitcoin Grants program.',
+    website: 'https://spiral.xyz',
+    logo: '/logos/spiral.svg',
+    active: true,
+    workflowImplemented: false
+  }
 };
 
 export default organizations; 
