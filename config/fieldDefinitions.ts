@@ -207,7 +207,9 @@ export const allFields: FieldDefinition[] = [
   {
     id: "date_of_birth",
     label: "Date of Birth",
+    description: "Please provide your date of birth in the format DD/MM/YYYY",
     type: "date",
+    required: true,
     organizations: ["maelstrom"],
     section: "applicant"
   },

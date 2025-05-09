@@ -87,7 +87,10 @@ const organizations: Record<string, Organization> = {
         'why_considered': 'entry.1057282536',
         'focus_area': 'entry.338152386',
         'reference_name': 'entry.1607764047',
-        'reference_email': 'entry.1103553241'
+        'reference_email': 'entry.1103553241',
+        'date_of_birth_year': 'entry.688265063_year',
+        'date_of_birth_month': 'entry.688265063_month',
+        'date_of_birth_day': 'entry.688265063_day'
       }
     },
     fieldMapping: {

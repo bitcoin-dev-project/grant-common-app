@@ -25,6 +25,21 @@ export class GoogleFormWorkflowHandler implements WorkflowHandler {
       // Apply field mapping if available
       const mappedApplication = mapFields(application, org.fieldMapping || {});
       
+      // Special handling for date of birth if it exists
+      if (mappedApplication.date_of_birth && typeof mappedApplication.date_of_birth === 'string') {
+        try {
+          const dateObj = new Date(mappedApplication.date_of_birth as string);
+          if (!isNaN(dateObj.getTime())) {
+            // Add individual date components
+            mappedApplication.date_of_birth_year = dateObj.getFullYear().toString();
+            mappedApplication.date_of_birth_month = (dateObj.getMonth() + 1).toString();
+            mappedApplication.date_of_birth_day = dateObj.getDate().toString();
+          }
+        } catch (e) {
+          console.error('Error parsing date of birth:', e);
+        }
+      }
+      
       // Create form data from mapped fields
       const formData = new URLSearchParams();
       const formFields = org.workflowConfig.formFields;
@@ -32,7 +47,8 @@ export class GoogleFormWorkflowHandler implements WorkflowHandler {
       // Add each field to the form data
       for (const [appField, formField] of Object.entries(formFields)) {
         // Get value from application data, using mapped field if available
-        const value = String(mappedApplication[appField] || '');
+        let value = String(mappedApplication[appField] || '');
+        
         if (value) {
           formData.append(formField, value);
         }
