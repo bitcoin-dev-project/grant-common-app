@@ -51,7 +51,7 @@ export const allFields: FieldDefinition[] = [
     description: "The name of the project. Abbreviations are fine too.",
     type: "text",
     required: true,
-    organizations: ["opensats", "maelstrom"],
+    organizations: ["opensats"],
     section: "project"
   },
   {
@@ -79,7 +79,7 @@ export const allFields: FieldDefinition[] = [
     type: "textarea",
     required: true,
     placeholder: "Provide a clear and concise description of your project, including its purpose, who it serves, and what problem it solves.",
-    organizations: ["opensats", "maelstrom"],
+    organizations: ["opensats"],
     section: "project"
   },
   {
@@ -92,6 +92,15 @@ export const allFields: FieldDefinition[] = [
     organizations: ["opensats"],
     section: "project"
   },
+  {
+    id: "focus_area_description",
+    label: "Main Area of Focus",
+    description: "What will be your main area of focus (during next 12 months) if you are awarded a grant?",
+    type: "textarea",
+    required: true,
+    organizations: ["maelstrom"],
+    section: "project"
+  },
   
   // Source Code section
   {
@@ -99,7 +108,7 @@ export const allFields: FieldDefinition[] = [
     label: "Is this project free and open-source software?",
     type: "checkbox",
     required: true,
-    organizations: ["opensats", "maelstrom"],
+    organizations: ["opensats"],
     section: "source"
   },
   {
@@ -116,7 +125,7 @@ export const allFields: FieldDefinition[] = [
     label: "Project GitHub",
     description: "Link to the project's GitHub repository or other code hosting platform.",
     type: "text",
-    organizations: ["opensats", "maelstrom"],
+    organizations: ["opensats"],
     section: "source"
   },
   
@@ -203,6 +212,38 @@ export const allFields: FieldDefinition[] = [
     section: "applicant"
   },
   {
+    id: "residential_address",
+    label: "Residential Address",
+    type: "text",
+    required: true,
+    organizations: ["maelstrom"],
+    section: "applicant"
+  },
+  {
+    id: "citizenship_country",
+    label: "Country of Citizenship",
+    type: "text",
+    required: true,
+    organizations: ["maelstrom"],
+    section: "applicant"
+  },
+  {
+    id: "github_profile_alt",
+    label: "GitHub Profile (Alternative)",
+    type: "text",
+    organizations: ["maelstrom"],
+    section: "applicant"
+  },
+  {
+    id: "why_considered",
+    label: "Why Should You Be Considered",
+    description: "Why should you be considered over other candidates?",
+    type: "textarea",
+    required: true,
+    organizations: ["maelstrom"],
+    section: "applicant"
+  },
+  {
     id: "are_you_lead",
     label: "Are you the Project Lead / Lead Contributor?",
     type: "checkbox",
@@ -240,6 +281,26 @@ export const allFields: FieldDefinition[] = [
     type: "textarea",
     required: true,
     organizations: ["opensats"],
+    section: "references"
+  },
+  
+  {
+    id: "reference_name",
+    label: "Reference Name",
+    description: "Name of your reference",
+    type: "text",
+    required: true,
+    organizations: ["maelstrom"],
+    section: "references"
+  },
+  
+  {
+    id: "reference_email",
+    label: "Reference Email",
+    description: "Email of your reference",
+    type: "email",
+    required: true,
+    organizations: ["maelstrom"],
     section: "references"
   },
   

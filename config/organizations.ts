@@ -91,7 +91,9 @@ const organizations: Record<string, Organization> = {
       }
     },
     fieldMapping: {
-      'your_name': 'name'
+      'your_name': 'name',
+      'personal_github': 'github_profile',
+      'focus_area_description': 'focus_area'
     }
   },
   spiral: {

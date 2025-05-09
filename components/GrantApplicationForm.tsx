@@ -658,9 +658,9 @@ export default function GrantApplicationForm() {
             ) : (
               <button
                 type="submit"
-                disabled={loading || !isFLOSS || selectedOrgs.filter(id => organizations[id]?.workflowImplemented).length === 0 || (currentStep === formSections.length - 1 && !readyToSubmit)}
+                disabled={loading || selectedOrgs.filter(id => organizations[id]?.workflowImplemented).length === 0 || (currentStep === formSections.length - 1 && !readyToSubmit)}
                 className={`py-4 px-6 text-lg rounded-lg font-medium transition-all duration-200 shadow-sm flex items-center justify-center ${
-                  isFLOSS && selectedOrgs.filter(id => organizations[id]?.workflowImplemented).length > 0 && (currentStep !== formSections.length - 1 || readyToSubmit)
+                  selectedOrgs.filter(id => organizations[id]?.workflowImplemented).length > 0 && (currentStep !== formSections.length - 1 || readyToSubmit)
                     ? loading 
                       ? 'bg-blue-400 text-white cursor-not-allowed' 
                       : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transform hover:-translate-y-0.5'
