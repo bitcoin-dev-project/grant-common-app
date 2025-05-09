@@ -65,10 +65,25 @@ export default function GrantApplicationForm() {
   // Get required fields based on selected organizations
   const requiredFieldsBySection = getRequiredFieldsBySection(selectedOrgs);
   
+  // Get visible sections based on selected organizations
+  const visibleSections = formSections.filter(section => {
+    // Organization section is always visible
+    if (section.id === 'organization') return true;
+    
+    // For other sections, check if they have any fields
+    const sectionFields = getFieldsForSection(section.id, selectedOrgs);
+    
+    // Special case for "other" section - always show it for the review step
+    if (section.id === 'other') return true;
+    
+    return sectionFields.length > 0;
+  });
+  
   // Next button handler
   const goToNextStep = async () => {
     // Check if current section fields are valid
-    const currentRequiredFields = requiredFieldsBySection[currentStep] || [];
+    const currentSection = visibleSections[currentStep];
+    const currentRequiredFields = requiredFieldsBySection[formSections.findIndex(s => s.id === currentSection.id)] || [];
     const isStepValid = await trigger(currentRequiredFields);
     
     // For the first step, additionally check if at least one organization is selected
@@ -81,7 +96,7 @@ export default function GrantApplicationForm() {
       setReadyToSubmit(false);
       
       // Update step
-      setCurrentStep(prev => Math.min(prev + 1, formSections.length - 1));
+      setCurrentStep(prev => Math.min(prev + 1, visibleSections.length - 1));
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -100,7 +115,7 @@ export default function GrantApplicationForm() {
 
   // Add a new useEffect to handle special behavior when moving to the Other Info step
   useEffect(() => {
-    const lastStep = formSections.length - 1;
+    const lastStep = visibleSections.length - 1;
     if (currentStep === lastStep) {
       // When navigating to the last step ("Other Info"), ensure no button has focus
       // This prevents accidental submission via Enter key
@@ -130,7 +145,7 @@ export default function GrantApplicationForm() {
         document.removeEventListener('keydown', handleKeyDown);
       };
     }
-  }, [currentStep]);
+  }, [currentStep, visibleSections]);
   
   // Load saved draft data if available
   useEffect(() => {
@@ -364,7 +379,7 @@ export default function GrantApplicationForm() {
 
   // Render form sections dynamically based on the selected organizations
   const renderFormSection = (sectionIndex: number) => {
-    const section = formSections[sectionIndex];
+    const section = visibleSections[sectionIndex];
     if (!section) return null;
     
     // Get fields for this section based on selected organizations
@@ -380,45 +395,53 @@ export default function GrantApplicationForm() {
       );
     }
     
-    // Skip sections with no fields for the selected organizations
-    if (sectionFields.length === 0) {
-      // If the current step has no fields, go to the previous step
-      // This prevents landing on an empty step that would only show a submit button
-      if (section.id === "other") {
-        // Add a placeholder field so the section isn't empty
-        return (
-          <div ref={sectionRefs[sectionIndex]}>
-            <SectionDivider title={section.label} />
-            {/* Add a focus trap element that can capture focus but isn't interactive */}
-            <div id="focus-trap" tabIndex={-1} style={{ outline: 'none' }}></div>
-            <div className="mb-6">
-              <p className="text-gray-600 mb-4">
-                Please review your application and click submit when you're ready.
-              </p>
-              
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={readyToSubmit}
-                  onChange={() => setReadyToSubmit(!readyToSubmit)}
-                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <span className="ml-2 text-gray-700">I have reviewed my application and I'm ready to submit</span>
-              </label>
-            </div>
+    // Special handling for the "other" section (final review)
+    if (section.id === "other") {
+      // Add a placeholder field so the section isn't empty
+      return (
+        <div ref={sectionRefs[sectionIndex]}>
+          <SectionDivider title={section.label} />
+          {/* Add a focus trap element that can capture focus but isn't interactive */}
+          <div id="focus-trap" tabIndex={-1} style={{ outline: 'none' }}></div>
+          <div className="mb-6">
+            <p className="text-gray-600 mb-4">
+              Please review your application and click submit when you're ready.
+            </p>
+            
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                checked={readyToSubmit}
+                onChange={() => setReadyToSubmit(!readyToSubmit)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <span className="ml-2 text-gray-700">I have reviewed my application and I'm ready to submit</span>
+            </label>
           </div>
-        );
-      }
-      return null;
+          
+          {/* Render any fields for the other section */}
+          {sectionFields.length > 0 && (
+            <div className="mt-6">
+              {sectionFields.map(field => (
+                <FormInput
+                  key={field.id}
+                  fieldDefinition={field}
+                  name={field.id}
+                  register={register}
+                  error={errors[field.id]}
+                  label={field.label}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      );
     }
     
+    // For regular sections with fields
     return (
       <div ref={sectionRefs[sectionIndex]}>
         <SectionDivider title={section.label} />
-        {section.id === "other" && (
-          // Add a focus trap for the normal case too
-          <div id="focus-trap" tabIndex={-1} style={{ outline: 'none' }}></div>
-        )}
         
         {sectionFields.map(field => (
           <FormInput
@@ -485,7 +508,7 @@ export default function GrantApplicationForm() {
     <form 
       onSubmit={(e) => {
         // Check if we're on the last step - if so, require explicit confirmation
-        if (currentStep === formSections.length - 1 && !window.confirm("Are you ready to submit your application?")) {
+        if (currentStep === visibleSections.length - 1 && !window.confirm("Are you ready to submit your application?")) {
           e.preventDefault();
           return false;
         }
@@ -497,7 +520,7 @@ export default function GrantApplicationForm() {
       {/* Progress Steps */}
       <div className="mb-8">
         <div className="flex justify-between items-center">
-          {formSections.map((section, index) => (
+          {visibleSections.map((section, index) => (
             <button
               key={section.id}
               type="button"
@@ -534,7 +557,7 @@ export default function GrantApplicationForm() {
           <div 
             className="absolute top-1/2 transform -translate-y-1/2 h-0.5 bg-blue-600 transition-all duration-300"
             style={{ 
-              width: `${(currentStep / (formSections.length - 1)) * 100}%` 
+              width: `${(currentStep / (visibleSections.length - 1)) * 100}%` 
             }}
           ></div>
         </div>
@@ -644,7 +667,7 @@ export default function GrantApplicationForm() {
               )}
             </button>
             
-            {currentStep < formSections.length - 1 ? (
+            {currentStep < visibleSections.length - 1 ? (
               <button
                 type="button"
                 onClick={goToNextStep}
@@ -658,9 +681,9 @@ export default function GrantApplicationForm() {
             ) : (
               <button
                 type="submit"
-                disabled={loading || selectedOrgs.filter(id => organizations[id]?.workflowImplemented).length === 0 || (currentStep === formSections.length - 1 && !readyToSubmit)}
+                disabled={loading || selectedOrgs.filter(id => organizations[id]?.workflowImplemented).length === 0 || (currentStep === visibleSections.length - 1 && !readyToSubmit)}
                 className={`py-4 px-6 text-lg rounded-lg font-medium transition-all duration-200 shadow-sm flex items-center justify-center ${
-                  selectedOrgs.filter(id => organizations[id]?.workflowImplemented).length > 0 && (currentStep !== formSections.length - 1 || readyToSubmit)
+                  selectedOrgs.filter(id => organizations[id]?.workflowImplemented).length > 0 && (currentStep !== visibleSections.length - 1 || readyToSubmit)
                     ? loading 
                       ? 'bg-blue-400 text-white cursor-not-allowed' 
                       : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transform hover:-translate-y-0.5'
