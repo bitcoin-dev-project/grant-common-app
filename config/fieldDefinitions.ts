@@ -246,6 +246,18 @@ export const allFields: FieldDefinition[] = [
     section: "applicant"
   },
   {
+    id: "bitcoin_dev_years",
+    label: "How many years have you been developing on the Bitcoin network?",
+    type: "select",
+    required: true,
+    options: [
+      { value: "0-4 years", label: "0-4 years" },
+      { value: "5+ years", label: "5+ years" }
+    ],
+    organizations: ["maelstrom"],
+    section: "applicant"
+  },
+  {
     id: "are_you_lead",
     label: "Are you the Project Lead / Lead Contributor?",
     type: "checkbox",
