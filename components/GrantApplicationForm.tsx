@@ -41,6 +41,7 @@ export default function GrantApplicationForm() {
   const [currentStep, setCurrentStep] = useState(0)
   const [draftSaved, setDraftSaved] = useState(false)
   const [draftSaving, setDraftSaving] = useState(false)
+  const [readyToSubmit, setReadyToSubmit] = useState(false)
   
   // Define all section refs
   const sectionRefs = formSections.map(() => useRef<HTMLDivElement>(null));
@@ -76,6 +77,10 @@ export default function GrantApplicationForm() {
     }
     
     if (isStepValid) {
+      // Reset ready to submit when advancing to any step
+      setReadyToSubmit(false);
+      
+      // Update step
       setCurrentStep(prev => Math.min(prev + 1, formSections.length - 1));
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -93,6 +98,40 @@ export default function GrantApplicationForm() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Add a new useEffect to handle special behavior when moving to the Other Info step
+  useEffect(() => {
+    const lastStep = formSections.length - 1;
+    if (currentStep === lastStep) {
+      // When navigating to the last step ("Other Info"), ensure no button has focus
+      // This prevents accidental submission via Enter key
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+      
+      // Focus on a non-interactive element to prevent auto-focus on submit button
+      const focusTrap = document.getElementById('focus-trap');
+      if (focusTrap) {
+        focusTrap.focus();
+      }
+      
+      // Add a key event handler to disable Enter key form submission
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          return false;
+        }
+      };
+      
+      // Add the event listener to the form or document
+      document.addEventListener('keydown', handleKeyDown);
+      
+      // Clean up when leaving the step
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [currentStep]);
+  
   // Load saved draft data if available
   useEffect(() => {
     const savedDraft = localStorage.getItem('grantApplicationDraft');
@@ -342,11 +381,44 @@ export default function GrantApplicationForm() {
     }
     
     // Skip sections with no fields for the selected organizations
-    if (sectionFields.length === 0) return null;
+    if (sectionFields.length === 0) {
+      // If the current step has no fields, go to the previous step
+      // This prevents landing on an empty step that would only show a submit button
+      if (section.id === "other") {
+        // Add a placeholder field so the section isn't empty
+        return (
+          <div ref={sectionRefs[sectionIndex]}>
+            <SectionDivider title={section.label} />
+            {/* Add a focus trap element that can capture focus but isn't interactive */}
+            <div id="focus-trap" tabIndex={-1} style={{ outline: 'none' }}></div>
+            <div className="mb-6">
+              <p className="text-gray-600 mb-4">
+                Please review your application and click submit when you're ready.
+              </p>
+              
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={readyToSubmit}
+                  onChange={() => setReadyToSubmit(!readyToSubmit)}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span className="ml-2 text-gray-700">I have reviewed my application and I'm ready to submit</span>
+              </label>
+            </div>
+          </div>
+        );
+      }
+      return null;
+    }
     
     return (
       <div ref={sectionRefs[sectionIndex]}>
         <SectionDivider title={section.label} />
+        {section.id === "other" && (
+          // Add a focus trap for the normal case too
+          <div id="focus-trap" tabIndex={-1} style={{ outline: 'none' }}></div>
+        )}
         
         {sectionFields.map(field => (
           <FormInput
@@ -410,7 +482,18 @@ export default function GrantApplicationForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="max-w-4xl mx-auto px-4 py-8">
+    <form 
+      onSubmit={(e) => {
+        // Check if we're on the last step - if so, require explicit confirmation
+        if (currentStep === formSections.length - 1 && !window.confirm("Are you ready to submit your application?")) {
+          e.preventDefault();
+          return false;
+        }
+        // Otherwise, use the regular handler
+        return handleSubmit(onSubmit)(e);
+      }} 
+      className="max-w-4xl mx-auto px-4 py-8"
+    >
       {/* Progress Steps */}
       <div className="mb-8">
         <div className="flex justify-between items-center">
@@ -539,19 +622,26 @@ export default function GrantApplicationForm() {
               type="button"
               onClick={saveDraft}
               disabled={draftSaving}
-              className="text-sm text-gray-600 hover:text-gray-900 flex items-center"
+              className="py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center"
             >
               {draftSaving ? (
-                <svg className="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-700" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Saving...
+                </span>
+              ) : draftSaved ? (
+                <span className="flex items-center">
+                  <svg className="h-4 w-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Saved!
+                </span>
               ) : (
-                <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                </svg>
+                <span>Save Draft</span>
               )}
-              {draftSaved ? 'Saved!' : 'Save Draft'}
             </button>
             
             {currentStep < formSections.length - 1 ? (
@@ -568,9 +658,9 @@ export default function GrantApplicationForm() {
             ) : (
               <button
                 type="submit"
-                disabled={loading || !isFLOSS || selectedOrgs.filter(id => organizations[id]?.workflowImplemented).length === 0}
+                disabled={loading || !isFLOSS || selectedOrgs.filter(id => organizations[id]?.workflowImplemented).length === 0 || (currentStep === formSections.length - 1 && !readyToSubmit)}
                 className={`py-4 px-6 text-lg rounded-lg font-medium transition-all duration-200 shadow-sm flex items-center justify-center ${
-                  isFLOSS && selectedOrgs.filter(id => organizations[id]?.workflowImplemented).length > 0
+                  isFLOSS && selectedOrgs.filter(id => organizations[id]?.workflowImplemented).length > 0 && (currentStep !== formSections.length - 1 || readyToSubmit)
                     ? loading 
                       ? 'bg-blue-400 text-white cursor-not-allowed' 
                       : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transform hover:-translate-y-0.5'
@@ -578,20 +668,15 @@ export default function GrantApplicationForm() {
                 }`}
               >
                 {loading ? (
-                  <>
-                    <svg className="animate-spin h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24">
+                  <span className="flex items-center">
+                    <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                     Submitting...
-                  </>
+                  </span>
                 ) : (
-                  <>
-                    Submit Application
-                    <svg className="h-5 w-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                    </svg>
-                  </>
+                  <span>Submit Application</span>
                 )}
               </button>
             )}

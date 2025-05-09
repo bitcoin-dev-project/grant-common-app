@@ -76,14 +76,22 @@ const organizations: Record<string, Organization> = {
     workflowImplemented: true,
     workflowType: 'googleForm',
     workflowConfig: {
-      formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfaYIDUCWC59ZGGvqaRf-gfWK3lnF3xVtKY9eegpCMZxF1itw/formResponse',
+      formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSewRtvjps7eABRMR_w3Dn7KLnf2aDTUXpE-nX7IecKm_7nJxw/formResponse',
       formFields: {
-        'email': 'entry.456501839',
-        'your_name': 'entry.1273845014'
+        'email': 'entry.267422902',
+        'name': 'entry.1152883307',
+        'github_profile': 'entry.878663598',
+        'residential_address': 'entry.1788647717',
+        'citizenship_country': 'entry.510523878',
+        'github_profile_alt': 'entry.298649089',
+        'why_considered': 'entry.1057282536',
+        'focus_area': 'entry.338152386',
+        'reference_name': 'entry.1607764047',
+        'reference_email': 'entry.1103553241'
       }
     },
     fieldMapping: {
-      'name': 'your_name'
+      'your_name': 'name'
     }
   },
   spiral: {

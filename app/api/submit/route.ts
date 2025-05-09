@@ -61,13 +61,21 @@ export async function POST(request: Request) {
       }
     }
 
-    // Send confirmation emails upon successful submission
+    // Send confirmation emails upon successful submission only for specific organizations
     if (overallSuccess && data.application.email) {
-      try {
-        await SubmissionService.sendConfirmationEmails(data.application);
-      } catch (emailError) {
-        console.error('Error sending confirmation emails:', emailError);
-        // Still return success even if email sending fails
+      // Check if we need to send a confirmation email (based on selected organizations)
+      const shouldSendConfirmation = validOrgs.some(orgId => 
+        // List organizations that should receive confirmation emails
+        ['opensats'].includes(orgId)
+      );
+      
+      if (shouldSendConfirmation) {
+        try {
+          await SubmissionService.sendConfirmationEmails(data.application);
+        } catch (emailError) {
+          console.error('Error sending confirmation emails:', emailError);
+          // Still return success even if email sending fails
+        }
       }
     }
 
