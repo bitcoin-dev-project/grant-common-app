@@ -1,76 +1,134 @@
-# Bitcoin Grant Application Portal
+# Grant Application Platform
 
-A unified platform that allows developers to apply for grants from multiple Bitcoin funding organizations using a single application form.
+This application provides a common platform where grantees can apply to multiple grant programs in one place, instead of visiting each organization's website individually. A user selects the organizations they want to apply to, and the app forwards their data to the specific grant programs.
 
-## Overview
+## System Design
 
-This application provides:
+The system is designed to be flexible and extensible, allowing for different organizations with their own application workflows and field requirements.
 
-1. A common grant application form that works with multiple Bitcoin funding organizations
-2. A centralized place to submit applications rather than visiting each organization's website
-3. An expandable architecture that can easily add new grant organizations
+### Key Components
 
-## Features
+1. **Organization Configuration**
+   - Each organization has its own configuration in `config/organizations.ts`
+   - Organizations can specify their workflow type, field mappings, and other settings
 
-- Single application form with fields commonly required by Bitcoin funding organizations
-- Support for multiple organizations with organization-specific submission handling
-- Email confirmations using SendGrid for both applicants and administrators
-- Clean, responsive UI with validation
-- Easy to expand to additional organizations
+2. **Field Definitions**
+   - Field definitions are centralized in `config/fieldDefinitions.ts`
+   - Each field specifies which organizations use it
+   - The system dynamically shows only the fields relevant to selected organizations
 
-## Supported Organizations
+3. **Workflow Handlers**
+   - Different workflow types (API, Google Form, Email) have their own handlers
+   - Handlers are implemented in `app/api/submit/route.ts`
+   - Each handler knows how to format and submit data for its workflow type
 
-Currently, the portal supports:
+4. **Field Mapping**
+   - Organizations can define mappings between common fields and their specific field names
+   - This allows for field reuse across organizations with different naming conventions
 
-- OpenSats
+### Workflow Types
 
-More organizations are planned for the future.
+The system supports multiple workflow types:
+
+1. **API-based Workflow**
+   - Submits data to an organization's API endpoint
+   - Used by OpenSats
+
+2. **Google Form Workflow**
+   - Submits data to a Google Form
+   - Used by Maelstrom
+
+3. **Email Workflow**
+   - Sends application data via email
+   - Can be configured for organizations that prefer email notifications
+
+4. **Custom Workflow**
+   - For organizations with unique requirements
+   - Implemented through custom handler functions
+
+## Adding a New Organization
+
+To add a new organization:
+
+1. Update `config/organizations.ts` with the organization's details
+2. Configure the appropriate `workflowType` and `workflowConfig`
+3. Add any organization-specific fields to `config/fieldDefinitions.ts`
+4. Set `workflowImplemented: true` when ready to accept applications
+
+### Example: API-based Organization
+
+```typescript
+{
+  id: 'example-org',
+  name: 'Example Organization',
+  description: 'An example organization using API workflow',
+  website: 'https://example.org',
+  logo: '/logos/example.png',
+  active: true,
+  workflowImplemented: true,
+  workflowType: 'api',
+  workflowConfig: {
+    apiUrl: 'https://api.example.org/applications',
+    apiHeaders: {
+      'Authorization': `Bearer ${process.env.EXAMPLE_API_KEY}`
+    }
+  },
+  fieldMapping: {
+    'name': 'applicant_name'
+  }
+}
+```
+
+### Example: Google Form Organization
+
+```typescript
+{
+  id: 'form-org',
+  name: 'Form Organization',
+  description: 'An example organization using Google Form workflow',
+  website: 'https://form-org.example',
+  logo: '/logos/form-org.png',
+  active: true,
+  workflowImplemented: true,
+  workflowType: 'googleForm',
+  workflowConfig: {
+    formUrl: 'https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse',
+    formFields: {
+      'email': 'entry.123456789',
+      'your_name': 'entry.987654321'
+    }
+  }
+}
+```
+
+## Adding New Fields
+
+To add a new field:
+
+1. Add the field definition to `config/fieldDefinitions.ts`
+2. Specify which organizations use this field
+3. The field will automatically appear for users who select those organizations
 
 ## Development
 
-### Getting Started
+### Prerequisites
 
-1. Clone this repository
-2. Install dependencies:
-   ```
-   npm install
-   ```
-3. Create a `.env.local` file:
-   ```
-   # Organization API endpoints
-   OPENSATS_API_URL=https://opensats.org/api/github
-   OPENSATS_API_KEY=your_api_key_here
-   
-   # SendGrid Email Configuration
-   SENDGRID_API_URL=https://opensats.org/api/sendgrid
-   ```
-4. Run the development server:
-   ```
-   npm run dev
-   ```
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
+- Node.js 16+
+- npm or yarn
 
-### API Integration
+### Setup
 
-This application integrates with the OpenSats website API endpoints:
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Set up environment variables (copy `.env.example` to `.env.local`)
+4. Run the development server: `npm run dev`
 
-1. `/api/github` - For submitting applications to GitHub as issues
-2. `/api/sendgrid` - For sending email confirmations to applicants
+### Environment Variables
 
-Both endpoints are hosted in the OpenSats website application, not within this grant application portal. The grant portal simply forwards requests to these endpoints.
-
-### Adding a New Organization
-
-To add support for a new grant organization:
-
-1. Add the organization to `config/organizations.ts`
-2. Create an organization-specific submission handler in `app/api/submit/route.ts`
-3. Add any organization-specific fields to the form component if needed
+- `OPENSATS_API_URL`: API endpoint for OpenSats
+- `OPENSATS_API_KEY`: API key for OpenSats
+- `SENDGRID_API_URL`: API endpoint for SendGrid email service
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Contact
-
-For questions or suggestions, please open an issue in this repository.
+[MIT License](LICENSE)

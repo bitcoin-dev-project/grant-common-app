@@ -7,6 +7,24 @@ export type Organization = {
   apiUrl?: string;
   active: boolean;
   workflowImplemented?: boolean;
+  workflowType?: 'api' | 'googleForm' | 'email' | 'custom';
+  workflowConfig?: {
+    // For API-based submissions
+    apiHeaders?: Record<string, string>;
+    apiMethod?: 'POST' | 'PUT';
+    
+    // For Google Form submissions
+    formUrl?: string;
+    formFields?: Record<string, string>; // Maps our field names to form field IDs
+    
+    // For email-based submissions
+    emailRecipients?: string[];
+    emailSubject?: string;
+    
+    // For custom submissions
+    customHandler?: string; // Name of the handler function
+  };
+  fieldMapping?: Record<string, string>; // Maps common field names to org-specific field names
 }
 
 const organizations: Record<string, Organization> = {
@@ -18,7 +36,17 @@ const organizations: Record<string, Organization> = {
     logo: '/logos/opensats.png',
     apiUrl: process.env.OPENSATS_API_URL || 'https://opensats.org/api/github',
     active: true,
-    workflowImplemented: true
+    workflowImplemented: true,
+    workflowType: 'api',
+    workflowConfig: {
+      apiHeaders: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENSATS_API_KEY}`
+      }
+    },
+    fieldMapping: {
+      // No special mapping needed for OpenSats
+    }
   },
   brink: {
     id: 'brink',
@@ -45,7 +73,18 @@ const organizations: Record<string, Organization> = {
     website: 'https://maelstrom.fund/bitcoin-grant-program/',
     logo: '/logos/maelstrom.png',
     active: true,
-    workflowImplemented: false
+    workflowImplemented: true,
+    workflowType: 'googleForm',
+    workflowConfig: {
+      formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfaYIDUCWC59ZGGvqaRf-gfWK3lnF3xVtKY9eegpCMZxF1itw/formResponse',
+      formFields: {
+        'email': 'entry.456501839',
+        'your_name': 'entry.1273845014'
+      }
+    },
+    fieldMapping: {
+      'name': 'your_name'
+    }
   },
   spiral: {
     id: 'spiral',
