@@ -7,6 +7,24 @@ export type Organization = {
   apiUrl?: string;
   active: boolean;
   workflowImplemented?: boolean;
+  workflowType?: 'api' | 'googleForm' | 'email' | 'custom';
+  workflowConfig?: {
+    // For API-based submissions
+    apiHeaders?: Record<string, string>;
+    apiMethod?: 'POST' | 'PUT';
+    
+    // For Google Form submissions
+    formUrl?: string;
+    formFields?: Record<string, string>; // Maps our field names to form field IDs
+    
+    // For email-based submissions
+    emailRecipients?: string[];
+    emailSubject?: string;
+    
+    // For custom submissions
+    customHandler?: string; // Name of the handler function
+  };
+  fieldMapping?: Record<string, string>; // Maps common field names to org-specific field names
 }
 
 const organizations: Record<string, Organization> = {
@@ -18,7 +36,17 @@ const organizations: Record<string, Organization> = {
     logo: '/logos/opensats.png',
     apiUrl: process.env.OPENSATS_API_URL || 'https://opensats.org/api/github',
     active: true,
-    workflowImplemented: true
+    workflowImplemented: true,
+    workflowType: 'api',
+    workflowConfig: {
+      apiHeaders: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENSATS_API_KEY}`
+      }
+    },
+    fieldMapping: {
+      // No special mapping needed for OpenSats
+    }
   },
   brink: {
     id: 'brink',
@@ -45,7 +73,32 @@ const organizations: Record<string, Organization> = {
     website: 'https://maelstrom.fund/bitcoin-grant-program/',
     logo: '/logos/maelstrom.png',
     active: true,
-    workflowImplemented: false
+    workflowImplemented: true,
+    workflowType: 'googleForm',
+    workflowConfig: {
+      formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSewRtvjps7eABRMR_w3Dn7KLnf2aDTUXpE-nX7IecKm_7nJxw/formResponse',
+      formFields: {
+        'email': 'entry.267422902',
+        'name': 'entry.1152883307',
+        'github_profile': 'entry.878663598',
+        'residential_address': 'entry.1788647717',
+        'citizenship_country': 'entry.510523878',
+        'github_profile_alt': 'entry.298649089',
+        'why_considered': 'entry.1057282536',
+        'focus_area': 'entry.338152386',
+        'reference_name': 'entry.1607764047',
+        'reference_email': 'entry.1103553241',
+        'date_of_birth_year': 'entry.688265063_year',
+        'date_of_birth_month': 'entry.688265063_month',
+        'date_of_birth_day': 'entry.688265063_day',
+        'bitcoin_dev_years': 'entry.1763164704'
+      }
+    },
+    fieldMapping: {
+      'your_name': 'name',
+      'personal_github': 'github_profile',
+      'focus_area_description': 'focus_area'
+    }
   },
   spiral: {
     id: 'spiral',
