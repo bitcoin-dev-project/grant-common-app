@@ -1,9 +1,9 @@
 "use client"
 import { useState, useRef, useEffect } from 'react'
-import { useForm, FieldError, FieldErrorsImpl, Merge } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import axios from 'axios'
 import organizations from '../config/organizations'
-import { formSections, getFieldsForSection, getRequiredFieldsBySection, FieldDefinition } from '../config/fieldDefinitions'
+import { formSections, getFieldsForSection, getRequiredFieldsBySection } from '../config/fieldDefinitions'
 import Link from 'next/link'
 import Image from 'next/image'
 import FormInput from './FormInput'
@@ -25,6 +25,17 @@ function formatFieldName(field: string): string {
     .trim();
 }
 
+// Add this helper function to focus an element by name
+function focusElementByName(name: string) {
+  setTimeout(() => {
+    const element = document.getElementsByName(name)[0];
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.focus();
+    }
+  }, 100);
+}
+
 // Section divider component
 const SectionDivider = ({ title }: { title: string }) => (
   <div className="mb-8">
@@ -43,8 +54,8 @@ export default function GrantApplicationForm() {
   const [draftSaving, setDraftSaving] = useState(false)
   const [readyToSubmit, setReadyToSubmit] = useState(false)
   
-  // Define all section refs
-  const sectionRefs = formSections.map(() => useRef<HTMLDivElement>(null));
+  // Create refs properly, not in a callback
+  const sectionRefs = useRef<Array<HTMLDivElement | null>>(Array(formSections.length).fill(null));
   
   const {
     register,
@@ -59,7 +70,6 @@ export default function GrantApplicationForm() {
     }
   });
 
-  const isFLOSS = watch('free_open_source', false);
   const selectedOrgs = watch('organizations', []) as string[];
   
   // Get required fields based on selected organizations
@@ -388,7 +398,7 @@ export default function GrantApplicationForm() {
     // Special handling for organization selector
     if (section.id === 'organization') {
       return (
-        <div ref={sectionRefs[sectionIndex]}>
+        <div ref={(el) => { sectionRefs.current[sectionIndex] = el; }}>
           <SectionDivider title={section.label} />
           <OrganizationSelector />
         </div>
@@ -399,13 +409,13 @@ export default function GrantApplicationForm() {
     if (section.id === "other") {
       // Add a placeholder field so the section isn't empty
       return (
-        <div ref={sectionRefs[sectionIndex]}>
+        <div ref={(el) => { sectionRefs.current[sectionIndex] = el; }}>
           <SectionDivider title={section.label} />
           {/* Add a focus trap element that can capture focus but isn't interactive */}
           <div id="focus-trap" tabIndex={-1} style={{ outline: 'none' }}></div>
           <div className="mb-6">
             <p className="text-gray-600 mb-4">
-              Please review your application and click submit when you're ready.
+              Please review your application and click submit when you&apos;re ready.
             </p>
             
             <label className="flex items-center">
@@ -415,7 +425,7 @@ export default function GrantApplicationForm() {
                 onChange={() => setReadyToSubmit(!readyToSubmit)}
                 className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
               />
-              <span className="ml-2 text-gray-700">I have reviewed my application and I'm ready to submit</span>
+              <span className="ml-2 text-gray-700">I have reviewed my application and I&apos;m ready to submit</span>
             </label>
           </div>
           
@@ -440,7 +450,7 @@ export default function GrantApplicationForm() {
     
     // For regular sections with fields
     return (
-      <div ref={sectionRefs[sectionIndex]}>
+      <div ref={(el) => { sectionRefs.current[sectionIndex] = el; }}>
         <SectionDivider title={section.label} />
         
         {sectionFields.map(field => (
@@ -597,14 +607,8 @@ export default function GrantApplicationForm() {
                                 // Check if the field is in the current section
                                 if (sectionFields.some(f => f.id === field)) {
                                   goToStep(i);
-                                  // Wait for render then focus the field
-                                  setTimeout(() => {
-                                    const element = document.getElementsByName(field)[0];
-                                    if (element) {
-                                      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                      element.focus();
-                                    }
-                                  }, 100);
+                                  // Use the helper function instead of inline
+                                  focusElementByName(field);
                                   break;
                                 }
                               }
