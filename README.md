@@ -155,6 +155,7 @@ To add a new field:
 - `SENDGRID_API_URL`: API endpoint for OpenSats' SendGrid integration (only used for OpenSats)
 - `BRINK_EMAIL_RECIPIENTS`: Comma-separated list of email recipients for Brink applications
 - `SPIRAL_EMAIL_RECIPIENTS`: Comma-separated list of email recipients for Spiral applications
+- `BTRUST_EMAIL_RECIPIENTS`: Comma-separated list of email recipients for Btrust applications
 
 ## License
 
