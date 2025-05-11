@@ -46,8 +46,7 @@ const organizations: Record<string, Organization> = {
       },
       emailRecipients: process.env.OPENSATS_EMAIL_RECIPIENTS ? 
         process.env.OPENSATS_EMAIL_RECIPIENTS.split(',') : 
-        // ['applications@opensats.org']
-        ['j.errakibi@gmail.com']
+        []
     },
     fieldMapping: {
       // No special mapping needed for OpenSats
@@ -65,8 +64,7 @@ const organizations: Record<string, Organization> = {
     workflowConfig: {
       emailRecipients: process.env.BRINK_EMAIL_RECIPIENTS ? 
         process.env.BRINK_EMAIL_RECIPIENTS.split(',') : 
-        ['j.errakibi@gmail.com'],
-        // ['grants@brink.dev'],
+        [],
       emailSubject: 'New Brink Grant Application'
     },
     fieldMapping: {
