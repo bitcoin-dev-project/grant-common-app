@@ -244,20 +244,29 @@ export default function GrantApplicationForm() {
       console.log('Submitting form data:', data);
       
       // Filter out organizations that don't have workflows implemented
+      // Use the submittableOrgs directly in the FormData
+      const formData = new FormData();
+      
+      // Add the filtered organizations to the FormData
       const submittableOrgs = data.organizations.filter(
         (orgId: string) => organizations[orgId]?.workflowImplemented === true
       );
-
-      // Create a FormData object for file uploads
-      const formData = new FormData();
       
-      // Add all form fields to the FormData object
+      // Add organizations separately to ensure only valid ones are submitted
+      submittableOrgs.forEach((orgId: string) => {
+        formData.append('organizations', orgId);
+      });
+      
+      // Add all other form fields to the FormData object
       Object.entries(data).forEach(([key, value]) => {
+        // Skip organizations as we've already handled them
+        if (key === 'organizations') return;
+        
         // Handle file uploads
         if (value instanceof FileList && value.length > 0) {
           formData.append(key, value[0]);
         } else if (Array.isArray(value)) {
-          // Handle arrays (like organizations)
+          // Handle other arrays
           value.forEach(item => formData.append(key, item));
         } else if (value !== null && value !== undefined) {
           formData.append(key, value);
