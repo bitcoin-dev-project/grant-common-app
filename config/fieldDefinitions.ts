@@ -5,6 +5,7 @@ export type FieldType =
   | 'email'
   | 'select'
   | 'checkbox'
+  | 'file'
   | 'date';
 
 // Field definition interface
@@ -348,11 +349,10 @@ export const allFields: FieldDefinition[] = [
   {
     id: "grant_proposal",
     label: "Grant Proposal",
-    description: "Upload your grant proposal document if you have one.",
-    type: "text",
-    placeholder: "Link to your grant proposal document",
+    description: "Feel free to upload your grant proposal here:",
+    type: "file",
     organizations: ["brink"],
-    section: "project"
+    section: "other"
   },
   {
     id: "interview_availability",

@@ -9,7 +9,7 @@ interface FormInputProps {
   register: UseFormRegister<any>;
   required?: boolean;
   description?: string;
-  type?: 'text' | 'textarea' | 'email' | 'select' | 'checkbox' | 'date';
+  type?: 'text' | 'textarea' | 'email' | 'select' | 'checkbox' | 'file' | 'date';
   placeholder?: string;
   options?: { value: string; label: string }[];
   error?: any;
@@ -126,6 +126,15 @@ export default function FormInput({
       ) : finalType === 'date' ? (
         <input
           type="date"
+          {...register(name, { required: finalRequired })}
+          disabled={disabled}
+          className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 ${
+            error ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : ''
+          } ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+        />
+      ) : finalType === 'file' ? (
+        <input
+          type="file"
           {...register(name, { required: finalRequired })}
           disabled={disabled}
           className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 ${

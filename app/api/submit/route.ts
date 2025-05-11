@@ -2,19 +2,57 @@ import { NextResponse } from 'next/server'
 import organizations from '../../../config/organizations'
 import { SubmissionService, SubmissionResponse } from '../../../workflows'
 
-// Define application type
-interface ApplicationData {
-  organizations: string[];
-  application: Record<string, unknown>;
-  [key: string]: unknown;
+// Helper function to parse form data with files
+async function parseFormData(request: Request): Promise<{ fields: Record<string, any>, files: Record<string, any> }> {
+  const formData = await request.formData();
+  const fields: Record<string, any> = {};
+  const files: Record<string, any> = {};
+
+  // Process each form field
+  for (const [key, value] of formData.entries()) {
+    // Check if it's a file by checking if it has arrayBuffer method and other file-like properties
+    if (value && typeof value === 'object' && 'arrayBuffer' in value && 'type' in value && 'name' in value) {
+      const buffer = Buffer.from(await (value as Blob).arrayBuffer());
+      files[key] = {
+        buffer,
+        originalname: (value as any).name,
+        mimetype: (value as any).type,
+        size: (value as any).size,
+      };
+    } else {
+      // Handle multiple values for the same key (like checkboxes)
+      if (fields[key]) {
+        if (!Array.isArray(fields[key])) {
+          fields[key] = [fields[key]];
+        }
+        fields[key].push(value);
+      } else {
+        fields[key] = value;
+      }
+    }
+  }
+
+  return { fields, files };
 }
 
 export async function POST(request: Request) {
   try {
-    const data = await request.json() as ApplicationData;
+    // Parse the multipart form data
+    const { fields, files } = await parseFormData(request);
+    
+    // Extract organizations from the form data
+    const selectedOrgs = Array.isArray(fields.organizations) 
+      ? fields.organizations 
+      : fields.organizations ? [fields.organizations] : [];
+    
+    // Combine fields and files into a single application object
+    const application = {
+      ...fields,
+      ...files,
+    };
     
     // Validate the required fields
-    if (!data.organizations || !data.organizations.length || !data.application) {
+    if (!selectedOrgs || !selectedOrgs.length) {
       return NextResponse.json(
         { error: 'Missing required fields' }, 
         { status: 400 }
@@ -22,8 +60,8 @@ export async function POST(request: Request) {
     }
 
     // Get all valid organizations from the request
-    const validOrgs = data.organizations.filter(orgId => {
-      const org = organizations[orgId];
+    const validOrgs = selectedOrgs.filter(orgId => {
+      const org = organizations[orgId as string];
       return org && org.active && org.workflowImplemented === true;
     });
     
@@ -40,11 +78,11 @@ export async function POST(request: Request) {
     let overallSuccess = true;
     
     for (const orgId of validOrgs) {
-      const org = organizations[orgId];
+      const org = organizations[orgId as string];
       
       try {
         // Submit using the submission service
-        const response = await SubmissionService.submitToOrganization(data.application, org);
+        const response = await SubmissionService.submitToOrganization(application, org);
         results[orgId] = response;
         
         if (!response.success) {
