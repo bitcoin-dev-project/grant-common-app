@@ -1,5 +1,7 @@
 import { UseFormRegister } from 'react-hook-form'
 import { FieldDefinition } from '../config/fieldDefinitions'
+import organizations from '../config/organizations'
+import Image from 'next/image'
 
 interface FormInputProps {
   label: string;
@@ -27,7 +29,8 @@ export default function FormInput({
   options,
   error,
   disabled = false,
-  fieldDefinition
+  fieldDefinition,
+  selectedOrgs = []
 }: FormInputProps) {
   // If fieldDefinition is provided, use its properties
   const finalLabel = fieldDefinition?.label || label;
@@ -37,11 +40,44 @@ export default function FormInput({
   const finalPlaceholder = fieldDefinition?.placeholder || placeholder;
   const finalOptions = fieldDefinition?.options || options;
   
+  // Check if this field is specific to certain organizations
+  const isOrgSpecific = fieldDefinition?.organizations && fieldDefinition.organizations.length > 0;
+  
+  // Get the organizations this field is specific to (that are also selected)
+  const fieldOrgs = isOrgSpecific && selectedOrgs.length > 0
+    ? fieldDefinition!.organizations!.filter(orgId => selectedOrgs.includes(orgId))
+    : [];
+  
   return (
     <div className="mb-6">
       <label className="block text-gray-700 text-sm font-medium mb-1">
-        {finalLabel}
-        {finalRequired && <span className="text-red-500 ml-1">*</span>}
+        <div className="flex items-center">
+          <span>{finalLabel}</span>
+          {finalRequired && <span className="text-red-500 ml-1">*</span>}
+          
+          {/* Show organization icons for org-specific fields */}
+          {isOrgSpecific && fieldOrgs.length > 0 && selectedOrgs.length > 1 && (
+            <div className="flex ml-2 space-x-1">
+              {fieldOrgs.map(orgId => {
+                const org = organizations[orgId];
+                return org?.logo ? (
+                  <div 
+                    key={orgId}
+                    className="h-5 w-5 relative rounded-full overflow-hidden border border-gray-200"
+                    title={`Required for ${org.name}`}
+                  >
+                    <Image
+                      src={org.logo}
+                      alt={`${org.name} logo`}
+                      fill
+                      style={{ objectFit: 'contain' }}
+                    />
+                  </div>
+                ) : null;
+              })}
+            </div>
+          )}
+        </div>
       </label>
       
       {finalDescription && (

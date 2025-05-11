@@ -133,9 +133,16 @@ export const allFields: FieldDefinition[] = [
   {
     id: "duration",
     label: "Project Duration",
-    description: "How long will this project take to complete?",
-    type: "text",
+    description: "This will help us evaluate overall scope and potential grant duration. (It's ok to pivot and/or work on something else during this time)",
+    type: "select",
     required: true,
+    options: [
+      { value: "12_months", label: "12 months" },
+      { value: "9_months", label: "9 months" },
+      { value: "6_months", label: "6 months" },
+      { value: "3_months", label: "3 months" },
+      { value: "other", label: "Other (please elaborate below)" }
+    ],
     organizations: ["opensats"],
     section: "timeline"
   },
@@ -151,9 +158,15 @@ export const allFields: FieldDefinition[] = [
   {
     id: "commitment",
     label: "Time Commitment",
-    description: "How much time will you commit to this project?",
-    type: "text",
+    description: "How much time are you going to commit to the project?",
+    type: "select",
     required: true,
+    options: [
+      { value: "100", label: "100% - Full Time" },
+      { value: "75", label: "75% - Part Time" },
+      { value: "50", label: "50% - Part Time" },
+      { value: "25", label: "25% - Side Project" }
+    ],
     organizations: ["opensats"],
     section: "timeline"
   },
