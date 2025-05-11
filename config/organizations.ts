@@ -89,7 +89,33 @@ const organizations: Record<string, Organization> = {
     website: 'https://btrust.tech',
     logo: '/logos/btrust.jpg',
     active: true,
-    workflowImplemented: false
+    workflowImplemented: true,
+    workflowType: 'email',
+    workflowConfig: {
+      emailRecipients: process.env.BTRUST_EMAIL_RECIPIENTS ? 
+        process.env.BTRUST_EMAIL_RECIPIENTS.split(',') : 
+        [],
+      emailSubject: 'New Btrust Grant Application'
+    },
+    fieldMapping: {
+      'your_name': 'name',
+      'email': 'email',
+      'city': 'city',
+      'country': 'country',
+      'phone': 'telephone_number',
+      'twitter_handle': 'twitter',
+      'linkedin_profile': 'linkedin',
+      'personal_github': 'github',
+      'education': 'education',
+      'work_experience': 'work_experience',
+      'existing_funding': 'existing_funding',
+      'technical_background': 'technical_background',
+      'grant_purpose': 'grant_purpose',
+      'project_details': 'project_details',
+      'references': 'references',
+      'additional_info': 'additional_info',
+      'grant_proposal': 'grant_proposal'
+    }
   },
   maelstrom: {
     id: 'maelstrom',

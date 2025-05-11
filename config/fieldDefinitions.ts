@@ -206,7 +206,7 @@ export const allFields: FieldDefinition[] = [
     type: "text",
     required: true,
     placeholder: "John Doe",
-    organizations: ["opensats", "maelstrom", "brink", "spiral"],
+    organizations: ["opensats", "maelstrom", "brink", "spiral", "btrust"],
     section: "applicant"
   },
   {
@@ -215,7 +215,34 @@ export const allFields: FieldDefinition[] = [
     type: "email",
     required: true,
     placeholder: "satoshin@gmx.com",
-    organizations: ["opensats", "maelstrom", "brink", "spiral"],
+    organizations: ["opensats", "maelstrom", "brink", "spiral", "btrust"],
+    section: "applicant"
+  },
+  {
+    id: "city",
+    label: "City",
+    type: "text",
+    required: true,
+    placeholder: "San Francisco",
+    organizations: ["btrust"],
+    section: "applicant"
+  },
+  {
+    id: "country",
+    label: "Country",
+    type: "text",
+    required: true,
+    placeholder: "United States",
+    organizations: ["btrust"],
+    section: "applicant"
+  },
+  {
+    id: "phone",
+    label: "Telephone Number",
+    type: "text",
+    required: true,
+    placeholder: "+1 123-456-7890",
+    organizations: ["btrust"],
     section: "applicant"
   },
   {
@@ -291,7 +318,7 @@ export const allFields: FieldDefinition[] = [
     type: "text",
     required: true,
     placeholder: "https://github.com/username",
-    organizations: ["brink", "maelstrom", "spiral"],
+    organizations: ["brink", "maelstrom", "spiral", "btrust"],
     section: "applicant"
   },
   {
@@ -315,7 +342,7 @@ export const allFields: FieldDefinition[] = [
     label: "Twitter",
     type: "text",
     placeholder: "@username",
-    organizations: ["brink", "spiral"],
+    organizations: ["brink", "spiral", "btrust"],
     section: "applicant"
   },
   {
@@ -323,7 +350,7 @@ export const allFields: FieldDefinition[] = [
     label: "LinkedIn",
     type: "text",
     placeholder: "https://linkedin.com/in/username",
-    organizations: ["brink"],
+    organizations: ["brink", "btrust"],
     section: "applicant"
   },
   {
@@ -347,12 +374,22 @@ export const allFields: FieldDefinition[] = [
     section: "project"
   },
   {
+    id: "project_details",
+    label: "Project Details",
+    description: "What open-source project(s) will you work on with the grant? Please specify deliverables and timelines",
+    type: "textarea",
+    required: true,
+    placeholder: "Describe your project(s), deliverables, and timelines",
+    organizations: ["btrust"],
+    section: "project"
+  },
+  {
     id: "grant_proposal",
     label: "Grant Proposal",
-    description: "Feel free to upload your grant proposal here:",
+    description: "Feel free to upload your grant proposal here. For Btrust applications, please use this sample template: https://bit.ly/starter-grant-template",
     type: "file",
-    organizations: ["brink", "spiral"],
-    section: "other"
+    organizations: ["brink", "spiral", "btrust"],
+    section: "project"
   },
   {
     id: "interview_availability",
@@ -370,7 +407,7 @@ export const allFields: FieldDefinition[] = [
     description: "Is there anything else we should be aware of when considering your application?",
     type: "textarea",
     placeholder: "Provide any additional information that may be relevant to your application.",
-    organizations: ["brink", "spiral"],
+    organizations: ["brink", "spiral", "btrust"],
     section: "other"
   },
   
@@ -381,7 +418,7 @@ export const allFields: FieldDefinition[] = [
     description: "Please provide the names and contact information of 1-3 references who can speak to your work and expertise.",
     type: "textarea",
     required: true,
-    organizations: ["opensats"],
+    organizations: ["opensats", "btrust"],
     section: "references"
   },
   
@@ -429,6 +466,35 @@ export const allFields: FieldDefinition[] = [
     type: "textarea",
     organizations: ["opensats"],
     section: "other"
+  },
+  {
+    id: "existing_funding",
+    label: "Existing Grant Funding",
+    description: "Do you have any existing grant funding and/or applications in the pipeline? (Note that answering in the affirmative will NOT affect your chances of securing a Btrust grant)",
+    type: "textarea",
+    placeholder: "Please describe any existing funding or pending applications",
+    organizations: ["btrust"],
+    section: "budget"
+  },
+  {
+    id: "technical_background",
+    label: "Technical Background",
+    description: "About yourself, your technical background, and prior technical contributions including Bitcoin projects you've worked on / contributed to",
+    type: "textarea",
+    required: true,
+    placeholder: "Describe your technical background and contributions",
+    organizations: ["btrust"],
+    section: "applicant"
+  },
+  {
+    id: "grant_purpose",
+    label: "Grant Purpose",
+    description: "Why do you need a Starter Grant? Explain why you are applying for the Starter Grant. Discuss your goals and how the grant will enable you to achieve them.",
+    type: "textarea",
+    required: true,
+    placeholder: "Explain your goals and how the grant will help you achieve them",
+    organizations: ["btrust"],
+    section: "project"
   }
 ];
 
