@@ -66,6 +66,9 @@ export class EmailWorkflowHandler implements WorkflowHandler {
       // Format the application data for the email body
       let htmlBody = '';
       
+      // Prepare attachments array for files
+      const attachments: {content: string, filename: string, type: string, disposition: string}[] = [];
+      
       // Create HTML content for the email - similar to OpenSats implementation
       for (const [key, value] of Object.entries(application)) {
         // Format the field name for display
@@ -75,7 +78,22 @@ export class EmailWorkflowHandler implements WorkflowHandler {
         
         // Handle different value types
         let displayValue = '';
-        if (value === null || value === undefined) {
+        
+        // Handle file uploads
+        if (key === 'grant_proposal' && value && typeof value === 'object' && 'buffer' in value) {
+          // This is a file upload
+          const file = value as any;
+          if (file.buffer) {
+            const base64Content = Buffer.from(file.buffer).toString('base64');
+            attachments.push({
+              content: base64Content,
+              filename: file.originalname || 'grant-proposal.pdf',
+              type: file.mimetype || 'application/pdf',
+              disposition: 'attachment'
+            });
+            displayValue = `<em>File attached: ${file.originalname || 'grant-proposal.pdf'}</em>`;
+          }
+        } else if (value === null || value === undefined) {
           displayValue = '<em>Not provided</em>';
         } else if (typeof value === 'object') {
           displayValue = JSON.stringify(value, null, 2);
@@ -114,6 +132,7 @@ export class EmailWorkflowHandler implements WorkflowHandler {
         from: verifiedSender,
         subject: org.workflowConfig?.emailSubject || `New Grant Application for ${org.name}`,
         html: `<h2>New Grant Application for ${org.name}</h2>${htmlBody}`,
+        attachments: attachments.length > 0 ? attachments : undefined,
       };
 
       await sgMail.send(orgMsg);

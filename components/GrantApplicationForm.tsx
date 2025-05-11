@@ -247,10 +247,28 @@ export default function GrantApplicationForm() {
       const submittableOrgs = data.organizations.filter(
         (orgId: string) => organizations[orgId]?.workflowImplemented === true
       );
+
+      // Create a FormData object for file uploads
+      const formData = new FormData();
       
-      const response = await axios.post('/api/submit', {
-        organizations: submittableOrgs,
-        application: data
+      // Add all form fields to the FormData object
+      Object.entries(data).forEach(([key, value]) => {
+        // Handle file uploads
+        if (value instanceof FileList && value.length > 0) {
+          formData.append(key, value[0]);
+        } else if (Array.isArray(value)) {
+          // Handle arrays (like organizations)
+          value.forEach(item => formData.append(key, item));
+        } else if (value !== null && value !== undefined) {
+          formData.append(key, value);
+        }
+      });
+      
+      // Submit the form
+      const response = await axios.post('/api/submit', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
       });
       
       console.log('API response:', response.data);
