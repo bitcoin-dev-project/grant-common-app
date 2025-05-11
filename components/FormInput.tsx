@@ -13,6 +13,7 @@ interface FormInputProps {
   error?: any;
   disabled?: boolean;
   fieldDefinition?: FieldDefinition;
+  selectedOrgs?: string[];
 }
 
 export default function FormInput({

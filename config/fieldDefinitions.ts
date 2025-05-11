@@ -192,7 +192,7 @@ export const allFields: FieldDefinition[] = [
     type: "text",
     required: true,
     placeholder: "John Doe",
-    organizations: ["opensats", "maelstrom"],
+    organizations: ["opensats", "maelstrom", "brink"],
     section: "applicant"
   },
   {
@@ -201,7 +201,7 @@ export const allFields: FieldDefinition[] = [
     type: "email",
     required: true,
     placeholder: "satoshin@gmx.com",
-    organizations: ["opensats", "maelstrom"],
+    organizations: ["opensats", "maelstrom", "brink"],
     section: "applicant"
   },
   {
@@ -273,9 +273,11 @@ export const allFields: FieldDefinition[] = [
   },
   {
     id: "personal_github",
-    label: "Personal Github (or similar, if applicable)",
+    label: "GitHub",
     type: "text",
-    organizations: ["opensats", "maelstrom"],
+    required: true,
+    placeholder: "https://github.com/username",
+    organizations: ["brink", "maelstrom"],
     section: "applicant"
   },
   {
@@ -285,6 +287,78 @@ export const allFields: FieldDefinition[] = [
     type: "textarea",
     organizations: ["opensats"],
     section: "applicant"
+  },
+  {
+    id: "personal_website",
+    label: "Personal Website",
+    type: "text",
+    placeholder: "https://example.com",
+    organizations: ["brink"],
+    section: "applicant"
+  },
+  {
+    id: "twitter_handle",
+    label: "Twitter",
+    type: "text",
+    placeholder: "@username",
+    organizations: ["brink"],
+    section: "applicant"
+  },
+  {
+    id: "linkedin_profile",
+    label: "LinkedIn",
+    type: "text",
+    placeholder: "https://linkedin.com/in/username",
+    organizations: ["brink"],
+    section: "applicant"
+  },
+  {
+    id: "bitcoin_contributions",
+    label: "Bitcoin Contributions",
+    description: "Describe the contributions you've made to Bitcoin Core or other Bitcoin-related projects.",
+    type: "textarea",
+    required: true,
+    placeholder: "Provide details about your contributions to Bitcoin Core or other Bitcoin-related projects.",
+    organizations: ["brink"],
+    section: "project"
+  },
+  {
+    id: "project_description",
+    label: "Project Description",
+    description: "What project do you intend to work on? Please include the deliverables and timeline for the project.",
+    type: "textarea",
+    required: true,
+    placeholder: "Describe your project, including deliverables and timeline.",
+    organizations: ["brink"],
+    section: "project"
+  },
+  {
+    id: "grant_proposal",
+    label: "Grant Proposal",
+    description: "Upload your grant proposal document if you have one.",
+    type: "text",
+    placeholder: "Link to your grant proposal document",
+    organizations: ["brink"],
+    section: "project"
+  },
+  {
+    id: "interview_availability",
+    label: "Interview Availability",
+    description: "What block of time (listed in UTC) are you available for a half-hour interview (Monday-Friday)?",
+    type: "text",
+    required: true,
+    placeholder: "e.g., Monday-Friday 14:00-16:00 UTC",
+    organizations: ["brink"],
+    section: "applicant"
+  },
+  {
+    id: "additional_info",
+    label: "Additional Information",
+    description: "Is there anything else we should be aware of when considering your application?",
+    type: "textarea",
+    placeholder: "Provide any additional information that may be relevant to your application.",
+    organizations: ["brink"],
+    section: "other"
   },
   
   // References section

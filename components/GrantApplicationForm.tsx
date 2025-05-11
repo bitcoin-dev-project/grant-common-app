@@ -411,8 +411,6 @@ export default function GrantApplicationForm() {
       return (
         <div ref={(el) => { sectionRefs.current[sectionIndex] = el; }}>
           <SectionDivider title={section.label} />
-          {/* Add a focus trap element that can capture focus but isn't interactive */}
-          <div id="focus-trap" tabIndex={-1} style={{ outline: 'none' }}></div>
           <div className="mb-6">
             <p className="text-gray-600 mb-4">
               Please review your application and click submit when you&apos;re ready.
@@ -440,6 +438,51 @@ export default function GrantApplicationForm() {
                   register={register}
                   error={errors[field.id]}
                   label={field.label}
+                  selectedOrgs={selectedOrgs}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+    
+    // Special handling for the "verification" section (final step)
+    if (section.id === "verification") {
+      // Add a placeholder field so the section isn't empty
+      return (
+        <div ref={(el) => { sectionRefs.current[sectionIndex] = el; }}>
+          <SectionDivider title={section.label} />
+          {/* Add a focus trap element that can capture focus but isn't interactive */}
+          <div id="focus-trap" tabIndex={-1} style={{ outline: 'none' }}></div>
+          <div className="mb-6">
+            <p className="text-gray-600 mb-4">
+              Please complete the verification question below and review your application before submitting.
+            </p>
+            
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                checked={readyToSubmit}
+                onChange={() => setReadyToSubmit(!readyToSubmit)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <span className="ml-2 text-gray-700">I have reviewed my application and I&apos;m ready to submit</span>
+            </label>
+          </div>
+          
+          {/* Render any fields for the verification section */}
+          {sectionFields.length > 0 && (
+            <div className="mt-6">
+              {sectionFields.map(field => (
+                <FormInput
+                  key={field.id}
+                  fieldDefinition={field}
+                  name={field.id}
+                  register={register}
+                  error={errors[field.id]}
+                  label={field.label}
+                  selectedOrgs={selectedOrgs}
                 />
               ))}
             </div>
@@ -461,6 +504,7 @@ export default function GrantApplicationForm() {
             register={register}
             error={errors[field.id]}
             label={field.label}
+            selectedOrgs={selectedOrgs}
           />
         ))}
       </div>

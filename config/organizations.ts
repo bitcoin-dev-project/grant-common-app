@@ -34,7 +34,8 @@ const organizations: Record<string, Organization> = {
     description: 'OpenSats is a nonprofit organization dedicated to supporting open-source Bitcoin and other free and open-source software projects.',
     website: 'https://opensats.org',
     logo: '/logos/opensats.png',
-    apiUrl: process.env.OPENSATS_API_URL || 'https://opensats.org/api/github',
+    // apiUrl: process.env.OPENSATS_API_URL || 'https://opensats.org/api/github',
+    apiUrl: process.env.OPENSATS_API_URL,
     active: true,
     workflowImplemented: true,
     workflowType: 'api',
@@ -42,7 +43,11 @@ const organizations: Record<string, Organization> = {
       apiHeaders: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${process.env.OPENSATS_API_KEY}`
-      }
+      },
+      emailRecipients: process.env.OPENSATS_EMAIL_RECIPIENTS ? 
+        process.env.OPENSATS_EMAIL_RECIPIENTS.split(',') : 
+        // ['applications@opensats.org']
+        ['j.errakibi@gmail.com']
     },
     fieldMapping: {
       // No special mapping needed for OpenSats
@@ -55,7 +60,29 @@ const organizations: Record<string, Organization> = {
     website: 'https://brink.dev',
     logo: '/logos/brink.png',
     active: true,
-    workflowImplemented: false
+    workflowImplemented: true,
+    workflowType: 'email',
+    workflowConfig: {
+      emailRecipients: process.env.BRINK_EMAIL_RECIPIENTS ? 
+        process.env.BRINK_EMAIL_RECIPIENTS.split(',') : 
+        ['j.errakibi@gmail.com'],
+        // ['grants@brink.dev'],
+      emailSubject: 'New Brink Grant Application'
+    },
+    fieldMapping: {
+      'your_name': 'name',
+      'email': 'email',
+      'personal_website': 'website',
+      'twitter_handle': 'twitter',
+      'linkedin_profile': 'linkedin',
+      'personal_github': 'github',
+      'bitcoin_contributions': 'bitcoin_contributions',
+      'project_description': 'project_description',
+      'additional_info': 'additional_info',
+      'grant_proposal': 'grant_proposal',
+      'interview_availability': 'interview_availability',
+      'satoshi_last_name': 'satoshi_last_name'
+    }
   },
   btrust: {
     id: 'btrust',
