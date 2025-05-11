@@ -52,6 +52,11 @@ export class ApiWorkflowHandler implements WorkflowHandler {
       });
       
       console.log(`${org.name} API response:`, response.data);
+
+      // For OpenSats, also send to the SendGrid API URL
+      if (org.id === 'opensats') {
+        await this.sendToOpenSatsSendGrid(mappedApplication, org);
+      }
       
       return {
         success: true,
@@ -68,6 +73,47 @@ export class ApiWorkflowHandler implements WorkflowHandler {
         message: `Failed to submit application to ${org.name}`,
         error: err?.response?.data || err.message
       };
+    }
+  }
+
+  /**
+   * Sends application data to OpenSats SendGrid API
+   * @param application The mapped application data
+   * @param org The organization configuration
+   */
+  private async sendToOpenSatsSendGrid(
+    application: Record<string, unknown>,
+    org: Organization
+  ): Promise<void> {
+    const sendgridApiUrl = process.env.SENDGRID_API_URL;
+    
+    if (!sendgridApiUrl) {
+      console.warn('SendGrid API URL is not configured (SENDGRID_API_URL). Skipping email notification.');
+      return;
+    }
+
+    try {
+      // Format email data for OpenSats SendGrid API
+      const emailData = {
+        ...application,
+        recipients: org.workflowConfig?.emailRecipients || [],
+        subject: `New Grant Application for ${org.name}`,
+        organization: org.name
+      };
+      
+      console.log(`Sending ${org.name} application via SendGrid API:`, sendgridApiUrl);
+      
+      // Call OpenSats SendGrid API
+      const response = await axios.post(sendgridApiUrl, emailData);
+      
+      console.log(`${org.name} SendGrid API response:`, response.data);
+      
+      if (response.data.message !== 'success') {
+        console.warn(`OpenSats SendGrid API returned non-success: ${response.data.message}`);
+      }
+    } catch (error) {
+      // Log error but don't fail the whole submission
+      console.error('Error sending to OpenSats SendGrid API:', error);
     }
   }
 } 

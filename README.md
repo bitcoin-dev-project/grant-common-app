@@ -101,6 +101,28 @@ To add a new organization:
 }
 ```
 
+### Example: Email-based Organization
+
+```typescript
+{
+  id: 'email-org',
+  name: 'Email Organization',
+  description: 'An example organization using email-based workflow',
+  website: 'https://email-org.example',
+  logo: '/logos/email-org.png',
+  active: true,
+  workflowImplemented: true,
+  workflowType: 'email',
+  workflowConfig: {
+    emailRecipients: ['grants@email-org.example', 'admin@email-org.example'],
+    emailSubject: 'New Grant Application Submission'
+  },
+  fieldMapping: {
+    'your_name': 'applicant_name'
+  }
+}
+```
+
 ## Adding New Fields
 
 To add a new field:
@@ -127,7 +149,11 @@ To add a new field:
 
 - `OPENSATS_API_URL`: API endpoint for OpenSats
 - `OPENSATS_API_KEY`: API key for OpenSats
-- `SENDGRID_API_URL`: API endpoint for SendGrid email service
+- `OPENSATS_EMAIL_RECIPIENTS`: Comma-separated list of email recipients for OpenSats applications
+- `SENDGRID_API_KEY`: SendGrid API key for sending emails directly (used by Brink and other email-based workflows)
+- `SENDGRID_VERIFIED_SENDER`: Verified sender email address for SendGrid (required for all email workflows)
+- `SENDGRID_API_URL`: API endpoint for OpenSats' SendGrid integration (only used for OpenSats)
+- `BRINK_EMAIL_RECIPIENTS`: Comma-separated list of email recipients for Brink applications
 
 ## License
 

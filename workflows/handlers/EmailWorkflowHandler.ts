@@ -1,6 +1,12 @@
 import axios from 'axios';
+import sgMail from '@sendgrid/mail';
 import { Organization } from '../../config/organizations';
 import { WorkflowHandler, SubmissionResponse, mapFields } from '../WorkflowHandler';
+
+// Initialize SendGrid with API key if available
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+}
 
 /**
  * Handles submissions to email-based workflows
@@ -21,37 +27,8 @@ export class EmailWorkflowHandler implements WorkflowHandler {
       // Apply field mapping if available
       const mappedApplication = mapFields(application, org.fieldMapping || {});
       
-      // For now, use SendGrid API for all email-based workflows
-      const sendgridApiUrl = process.env.SENDGRID_API_URL;
-      
-      if (!sendgridApiUrl) {
-        throw new Error('SendGrid API URL is not configured (SENDGRID_API_URL)');
-      }
-      
-      // Format email data
-      const emailData = {
-        ...mappedApplication,
-        recipients: org.workflowConfig.emailRecipients,
-        subject: org.workflowConfig.emailSubject || `New Grant Application for ${org.name}`,
-        organization: org.name
-      };
-      
-      console.log(`Sending ${org.name} application via email:`, org.workflowConfig.emailRecipients);
-      
-      // Call SendGrid API
-      const response = await axios.post(sendgridApiUrl, emailData);
-      
-      console.log(`${org.name} email response:`, response.data);
-      
-      if (response.data.message !== 'success') {
-        throw new Error(`SendGrid API returned error: ${response.data.message}`);
-      }
-      
-      return {
-        success: true,
-        message: `Application submitted successfully to ${org.name} (Email)`,
-        data: {}
-      };
+      // Use SendGrid directly for all email-based workflows
+      return this.submitViaSendGrid(mappedApplication, org);
     } catch (error: unknown) {
       const err = error as Error & { response?: { data?: unknown } };
       console.error(`Error sending ${org.name} application via email:`, err);
@@ -61,6 +38,95 @@ export class EmailWorkflowHandler implements WorkflowHandler {
         message: `Failed to submit application to ${org.name} (Email)`,
         error: err?.response?.data || err.message
       };
+    }
+  }
+
+  /**
+   * Submits an application using SendGrid directly
+   * @param application The mapped application data
+   * @param org The organization configuration
+   * @returns A promise that resolves to a submission response
+   */
+  private async submitViaSendGrid(
+    application: Record<string, unknown>, 
+    org: Organization
+  ): Promise<SubmissionResponse> {
+    // Check if SendGrid API key is configured
+    if (!process.env.SENDGRID_API_KEY) {
+      throw new Error('SendGrid API key is not configured (SENDGRID_API_KEY)');
+    }
+
+    // Check if SendGrid verified sender is configured
+    const verifiedSender = process.env.SENDGRID_VERIFIED_SENDER;
+    if (!verifiedSender) {
+      throw new Error('SendGrid verified sender is not configured (SENDGRID_VERIFIED_SENDER)');
+    }
+
+    try {
+      // Format the application data for the email body
+      let htmlBody = '';
+      
+      // Create HTML content for the email - similar to OpenSats implementation
+      for (const [key, value] of Object.entries(application)) {
+        // Format the field name for display
+        const fieldName = key
+          .replace(/_/g, ' ')
+          .replace(/\b\w/g, (l) => l.toUpperCase());
+        
+        // Handle different value types
+        let displayValue = '';
+        if (value === null || value === undefined) {
+          displayValue = '<em>Not provided</em>';
+        } else if (typeof value === 'object') {
+          displayValue = JSON.stringify(value, null, 2);
+        } else {
+          displayValue = String(value);
+        }
+        
+        htmlBody += `<h3>${fieldName}</h3><p>${displayValue}</p>`;
+      }
+
+      // Send confirmation email to applicant if email is provided
+      const applicantEmail = application.email as string;
+      if (applicantEmail) {
+        const thankYouMessage = `
+          <p>Thank you for applying to ${org.name}!</p>
+          <p>We have received your application and will evaluate it as quickly as we can.</p>
+          <p>Feel free to reach out if you have any questions.</p>
+          <p>We will contact you once we've made a decision.</p>
+          <p>Thank you for your patience.</p>
+        `;
+
+        const applicantMsg = {
+          to: applicantEmail,
+          from: verifiedSender,
+          subject: `Your Application to ${org.name}`,
+          html: thankYouMessage,
+        };
+
+        await sgMail.send(applicantMsg);
+        console.log(`Confirmation email sent to applicant: ${applicantEmail}`);
+      }
+
+      // Send application details to organization recipients
+      const orgMsg = {
+        to: org.workflowConfig?.emailRecipients,
+        from: verifiedSender,
+        subject: org.workflowConfig?.emailSubject || `New Grant Application for ${org.name}`,
+        html: `<h2>New Grant Application for ${org.name}</h2>${htmlBody}`,
+      };
+
+      await sgMail.send(orgMsg);
+      console.log(`Application details sent to ${org.name} recipients`);
+      
+      return {
+        success: true,
+        message: `Application submitted successfully to ${org.name} (Email via SendGrid)`,
+        data: {}
+      };
+    } catch (error) {
+      console.error(`Error sending ${org.name} emails via SendGrid:`, error);
+      throw error;
     }
   }
 } 
