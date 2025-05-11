@@ -132,7 +132,26 @@ const organizations: Record<string, Organization> = {
     website: 'https://spiral.xyz',
     logo: '/logos/spiral.svg',
     active: true,
-    workflowImplemented: false
+    workflowImplemented: true,
+    workflowType: 'email',
+    workflowConfig: {
+      emailRecipients: process.env.SPIRAL_EMAIL_RECIPIENTS ? 
+        process.env.SPIRAL_EMAIL_RECIPIENTS.split(',') : 
+        [],
+      emailSubject: 'New Spiral Grant Application'
+    },
+    fieldMapping: {
+      'your_name': 'name',
+      'email': 'email',
+      'personal_website': 'website',
+      'twitter_handle': 'twitter',
+      'personal_github': 'github',
+      'project_description': 'project_description',
+      'potential_impact': 'potential_impact',
+      'short_description': 'short_description',
+      'grant_proposal': 'grant_proposal',
+      'additional_info': 'additional_info'
+    }
   }
 };
 

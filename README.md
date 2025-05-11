@@ -154,6 +154,7 @@ To add a new field:
 - `SENDGRID_VERIFIED_SENDER`: Verified sender email address for SendGrid (required for all email workflows)
 - `SENDGRID_API_URL`: API endpoint for OpenSats' SendGrid integration (only used for OpenSats)
 - `BRINK_EMAIL_RECIPIENTS`: Comma-separated list of email recipients for Brink applications
+- `SPIRAL_EMAIL_RECIPIENTS`: Comma-separated list of email recipients for Spiral applications
 
 ## License
 
