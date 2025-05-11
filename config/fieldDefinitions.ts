@@ -52,7 +52,7 @@ export const allFields: FieldDefinition[] = [
     description: "The name of the project. Abbreviations are fine too.",
     type: "text",
     required: true,
-    organizations: ["opensats"],
+    organizations: ["opensats", "spiral"],
     section: "project"
   },
   {
@@ -80,7 +80,7 @@ export const allFields: FieldDefinition[] = [
     type: "textarea",
     required: true,
     placeholder: "Provide a clear and concise description of your project, including its purpose, who it serves, and what problem it solves.",
-    organizations: ["opensats"],
+    organizations: ["opensats", "spiral"],
     section: "project"
   },
   {
@@ -90,7 +90,7 @@ export const allFields: FieldDefinition[] = [
     type: "textarea",
     required: true,
     placeholder: "Describe how your project will benefit the Bitcoin ecosystem or open-source community. Include potential use cases, user base, and long-term impact.",
-    organizations: ["opensats"],
+    organizations: ["opensats", "spiral"],
     section: "project"
   },
   {
@@ -109,7 +109,7 @@ export const allFields: FieldDefinition[] = [
     label: "Is this project free and open-source software?",
     type: "checkbox",
     required: true,
-    organizations: ["opensats"],
+    organizations: ["opensats", "spiral"],
     section: "source"
   },
   {
@@ -118,7 +118,7 @@ export const allFields: FieldDefinition[] = [
     description: "What license does your project use?",
     type: "text",
     required: true,
-    organizations: ["opensats"],
+    organizations: ["opensats", "spiral"],
     section: "source"
   },
   {
@@ -126,7 +126,7 @@ export const allFields: FieldDefinition[] = [
     label: "Project GitHub",
     description: "Link to the project's GitHub repository or other code hosting platform.",
     type: "text",
-    organizations: ["opensats"],
+    organizations: ["opensats", "spiral"],
     section: "source"
   },
   
@@ -206,7 +206,7 @@ export const allFields: FieldDefinition[] = [
     type: "text",
     required: true,
     placeholder: "John Doe",
-    organizations: ["opensats", "maelstrom", "brink"],
+    organizations: ["opensats", "maelstrom", "brink", "spiral"],
     section: "applicant"
   },
   {
@@ -215,7 +215,7 @@ export const allFields: FieldDefinition[] = [
     type: "email",
     required: true,
     placeholder: "satoshin@gmx.com",
-    organizations: ["opensats", "maelstrom", "brink"],
+    organizations: ["opensats", "maelstrom", "brink", "spiral"],
     section: "applicant"
   },
   {
@@ -291,7 +291,7 @@ export const allFields: FieldDefinition[] = [
     type: "text",
     required: true,
     placeholder: "https://github.com/username",
-    organizations: ["brink", "maelstrom"],
+    organizations: ["brink", "maelstrom", "spiral"],
     section: "applicant"
   },
   {
@@ -307,7 +307,7 @@ export const allFields: FieldDefinition[] = [
     label: "Personal Website",
     type: "text",
     placeholder: "https://example.com",
-    organizations: ["brink"],
+    organizations: ["brink", "spiral"],
     section: "applicant"
   },
   {
@@ -315,7 +315,7 @@ export const allFields: FieldDefinition[] = [
     label: "Twitter",
     type: "text",
     placeholder: "@username",
-    organizations: ["brink"],
+    organizations: ["brink", "spiral"],
     section: "applicant"
   },
   {
@@ -343,7 +343,7 @@ export const allFields: FieldDefinition[] = [
     type: "textarea",
     required: true,
     placeholder: "Describe your project, including deliverables and timeline.",
-    organizations: ["brink"],
+    organizations: ["brink", "spiral"],
     section: "project"
   },
   {
@@ -351,7 +351,7 @@ export const allFields: FieldDefinition[] = [
     label: "Grant Proposal",
     description: "Feel free to upload your grant proposal here:",
     type: "file",
-    organizations: ["brink"],
+    organizations: ["brink", "spiral"],
     section: "other"
   },
   {
@@ -370,7 +370,7 @@ export const allFields: FieldDefinition[] = [
     description: "Is there anything else we should be aware of when considering your application?",
     type: "textarea",
     placeholder: "Provide any additional information that may be relevant to your application.",
-    organizations: ["brink"],
+    organizations: ["brink", "spiral"],
     section: "other"
   },
   
