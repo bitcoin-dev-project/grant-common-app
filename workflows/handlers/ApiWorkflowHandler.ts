@@ -29,6 +29,11 @@ export class ApiWorkflowHandler implements WorkflowHandler {
         formattedApplication.general_fund = true;
       }
 
+      // Ensure organizations is always an array
+      if (formattedApplication.organizations && !Array.isArray(formattedApplication.organizations)) {
+        formattedApplication.organizations = [formattedApplication.organizations];
+      }
+
       console.log(`Submitting to ${org.name} API:`, org.apiUrl);
       console.log('Application data:', JSON.stringify(formattedApplication, null, 2));
 
