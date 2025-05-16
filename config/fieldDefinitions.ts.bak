@@ -90,7 +90,7 @@ export const allFields: FieldDefinition[] = [
     type: "textarea",
     required: true,
     placeholder: "Describe your project in detail, including its purpose, who it serves, what problem it solves, deliverables, and timeline.",
-    organizations: ["opensats", "spiral", "brink", "btrust", "maelstrom"],
+    organizations: ["opensats", "spiral", "brink", "btrust"],
     section: "project"
   },
   {
@@ -269,42 +269,19 @@ export const allFields: FieldDefinition[] = [
     organizations: ["brink", "btrust"],
     section: "applicant"
   },
-  // Address and location fields
+  // Btrust specific fields
   {
     id: "city",
     label: "City",
     type: "text",
     required: true,
     placeholder: "San Francisco",
-    organizations: ["btrust", "maelstrom"],
-    section: "applicant"
-  },
-  {
-    id: "country",
-    label: "Country",
-    description: "Country of residence and citizenship",
-    type: "text",
-    required: true,
-    placeholder: "United States",
-    organizations: ["btrust", "maelstrom"],
-    section: "applicant"
-  },
-  {
-    id: "phone",
-    label: "Telephone Number",
-    type: "text",
-    required: true,
-    placeholder: "+1 123-456-7890",
-    organizations: ["btrust", "maelstrom"],
-    section: "applicant"
-  },
-  // Hidden field for API compatibility
-  {
+    organizations: ["btrust"],
     id: "citizenship_country",
     label: "Country of Citizenship",
     type: "text",
-    required: false,
-    organizations: [], // Not shown to users
+    required: true,
+    organizations: ["maelstrom"],
     section: "applicant"
   },
   {
@@ -412,6 +389,35 @@ export const allFields: FieldDefinition[] = [
     placeholder: "Format: Name, Email, Relationship (e.g., John Doe, john@example.com, Former colleague)",
     organizations: ["opensats", "btrust", "maelstrom"],
     section: "references"
+  },
+  // Address and location fields
+  {
+    id: "city",
+    label: "City",
+    type: "text",
+    required: true,
+    placeholder: "San Francisco",
+    organizations: ["btrust", "maelstrom"],
+    section: "applicant"
+  },
+  {
+    id: "country",
+    label: "Country",
+    description: "Country of residence",
+    type: "text",
+    required: true,
+    placeholder: "United States",
+    organizations: ["btrust", "maelstrom"],
+    section: "applicant"
+  },
+  {
+    id: "phone",
+    label: "Telephone Number",
+    type: "text",
+    required: true,
+    placeholder: "+1 123-456-7890",
+    organizations: ["btrust", "maelstrom"],
+    section: "applicant"
   },
   // Maelstrom specific fields
   {
