@@ -125,25 +125,12 @@ const organizations: Record<string, Organization> = {
     logo: '/logos/maelstrom.png',
     active: true,
     workflowImplemented: true,
-    workflowType: 'googleForm',
+    workflowType: 'email',
     workflowConfig: {
-      formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSewRtvjps7eABRMR_w3Dn7KLnf2aDTUXpE-nX7IecKm_7nJxw/formResponse',
-      formFields: {
-        'email': 'entry.267422902',
-        'name': 'entry.1152883307',
-        'github_profile': 'entry.878663598',
-        'residential_address': 'entry.1788647717',
-        'citizenship_country': 'entry.510523878',
-        'github_profile_alt': 'entry.298649089',
-        'why_considered': 'entry.1057282536',
-        'focus_area': 'entry.338152386',
-        'reference_name': 'entry.1607764047',
-        'reference_email': 'entry.1103553241',
-        'date_of_birth_year': 'entry.688265063_year',
-        'date_of_birth_month': 'entry.688265063_month',
-        'date_of_birth_day': 'entry.688265063_day',
-        'bitcoin_dev_years': 'entry.1763164704'
-      }
+      emailRecipients: process.env.MAELSTROM_EMAIL_RECIPIENTS ? 
+        process.env.MAELSTROM_EMAIL_RECIPIENTS.split(',') : 
+        [],
+      emailSubject: 'New Maelstrom Grant Application'
     },
     fieldMapping: {
       'your_name': 'name',
