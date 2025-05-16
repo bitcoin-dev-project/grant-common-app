@@ -36,11 +36,10 @@ The system supports multiple workflow types:
 
 2. **Google Form Workflow**
    - Submits data to a Google Form
-   - Used by Maelstrom
 
 3. **Email Workflow**
    - Sends application data via email
-   - Can be configured for organizations that prefer email notifications
+   - Used by Maelstrom, Brink, Spiral, and Btrust
 
 4. **Custom Workflow**
    - For organizations with unique requirements
@@ -156,6 +155,7 @@ To add a new field:
 - `BRINK_EMAIL_RECIPIENTS`: Comma-separated list of email recipients for Brink applications
 - `SPIRAL_EMAIL_RECIPIENTS`: Comma-separated list of email recipients for Spiral applications
 - `BTRUST_EMAIL_RECIPIENTS`: Comma-separated list of email recipients for Btrust applications
+- `MAELSTROM_EMAIL_RECIPIENTS`: Comma-separated list of email recipients for Maelstrom applications
 
 ## License
 
