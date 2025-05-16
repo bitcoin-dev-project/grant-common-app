@@ -49,6 +49,7 @@ const organizations: Record<string, Organization> = {
         []
     },
     fieldMapping: {
+      'project_description': 'project_description',
       // No special mapping needed for OpenSats
     }
   },
@@ -111,7 +112,7 @@ const organizations: Record<string, Organization> = {
       'existing_funding': 'existing_funding',
       'technical_background': 'technical_background',
       'grant_purpose': 'grant_purpose',
-      'project_details': 'project_details',
+      'project_description': 'project_details',
       'references': 'references',
       'additional_info': 'additional_info',
       'grant_proposal': 'grant_proposal'
@@ -133,9 +134,15 @@ const organizations: Record<string, Organization> = {
       emailSubject: 'New Maelstrom Grant Application'
     },
     fieldMapping: {
+      'project_description': 'project_description',
       'your_name': 'name',
       'personal_github': 'github_profile',
-      'focus_area_description': 'focus_area'
+      'focus_area_description': 'focus_area',
+      'references': 'references',
+      'city': 'city',
+      'country': 'citizenship_country',
+      'phone': 'phone',
+      'residential_address': 'residential_address'
     }
   },
   spiral: {
@@ -161,7 +168,7 @@ const organizations: Record<string, Organization> = {
       'personal_github': 'github',
       'project_description': 'project_description',
       'potential_impact': 'potential_impact',
-      'short_description': 'short_description',
+      'project_name': 'project_description',
       'grant_proposal': 'grant_proposal',
       'additional_info': 'additional_info'
     }

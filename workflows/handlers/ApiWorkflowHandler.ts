@@ -27,6 +27,44 @@ export class ApiWorkflowHandler implements WorkflowHandler {
       // Organization-specific transformations
       if (org.id === 'opensats') {
         formattedApplication.general_fund = true;
+        
+        // Ensure short_description is populated from project_description for API compatibility
+        if (formattedApplication.project_description && !formattedApplication.short_description) {
+          formattedApplication.short_description = formattedApplication.project_description;
+        }
+        
+        // Handle other consolidated fields
+        if (formattedApplication.additional_info) {
+          // Populate fields that were consolidated into additional_info
+          formattedApplication.bios = formattedApplication.bios || formattedApplication.additional_info;
+          formattedApplication.anything_else = formattedApplication.anything_else || formattedApplication.additional_info;
+        }
+        
+        // Handle consolidated funding fields
+        if (formattedApplication.existing_funding) {
+          formattedApplication.what_funding = formattedApplication.what_funding || formattedApplication.existing_funding;
+          formattedApplication.has_received_funding = true;
+        }
+      } else if (org.id === 'maelstrom') {
+        // Handle consolidated references field for Maelstrom
+        if (formattedApplication.references && typeof formattedApplication.references === 'string') {
+          // Try to extract the first reference's name and email
+          const referenceText = formattedApplication.references as string;
+          const referenceMatch = referenceText.match(/([^,]+),\s*([^,\s]+@[^,\s]+)/);
+          
+          if (referenceMatch) {
+            formattedApplication.reference_name = referenceMatch[1].trim();
+            formattedApplication.reference_email = referenceMatch[2].trim();
+          }
+        }
+        
+        // Handle address fields for Maelstrom
+        // The residential_address field is already mapped in the organization config
+        
+        // Always use country value for citizenship_country field for Maelstrom
+        if (formattedApplication.country) {
+          formattedApplication.citizenship_country = formattedApplication.country;
+        }
       }
 
       // Ensure organizations is always an array
@@ -98,12 +136,41 @@ export class ApiWorkflowHandler implements WorkflowHandler {
     }
 
     try {
+      // Format application data into sections for better email presentation
+      const formattedSections: {
+        projectDetails: Record<string, unknown>;
+        applicantInfo: Record<string, unknown>;
+        additionalInfo: Record<string, unknown>;
+      } = {
+        projectDetails: {},
+        applicantInfo: {},
+        additionalInfo: {}
+      };
+      
+      // Categorize fields into sections
+      Object.entries(application).forEach(([key, value]) => {
+        if (['project_name', 'project_description', 'short_description', 'main_focus', 'potential_impact', 'github', 'license'].includes(key)) {
+          formattedSections.projectDetails[key] = value;
+        } else if (['your_name', 'email', 'personal_github', 'twitter_handle', 'linkedin_profile', 'personal_website'].includes(key)) {
+          formattedSections.applicantInfo[key] = value;
+        } else {
+          formattedSections.additionalInfo[key] = value;
+        }
+      });
+      
+      // Get the list of all organizations the applicant applied to
+      const appliedOrgs = application.organizations as string[] || [org.id];
+      
       // Format email data for OpenSats SendGrid API
       const emailData = {
         ...application,
+        formattedSections, // Add the organized sections
         recipients: org.workflowConfig?.emailRecipients || [],
         subject: `New Grant Application for ${org.name}`,
-        organization: org.name
+        organization: org.name,
+        emailTemplate: 'enhanced', // Signal to use the enhanced template
+        isSendingConfirmation: application.isSendingConfirmation, // Pass along the flag for confirmation email
+        appliedOrganizations: appliedOrgs // Pass all orgs the applicant applied to
       };
       
       console.log(`Sending ${org.name} application via SendGrid API:`, sendgridApiUrl);

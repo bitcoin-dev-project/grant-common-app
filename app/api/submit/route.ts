@@ -77,12 +77,21 @@ export async function POST(request: Request) {
     const results: Record<string, SubmissionResponse> = {};
     let overallSuccess = true;
     
-    for (const orgId of validOrgs) {
+    // Process each organization, but only send confirmation email for the first one
+    for (let i = 0; i < validOrgs.length; i++) {
+      const orgId = validOrgs[i];
       const org = organizations[orgId as string];
       
       try {
+        // Create a copy of the application data with a flag for the first org only
+        const applicationWithFlag = {
+          ...application,
+          // Only set isSendingConfirmation to true for the first org
+          isSendingConfirmation: i === 0
+        };
+        
         // Submit using the submission service
-        const response = await SubmissionService.submitToOrganization(application, org);
+        const response = await SubmissionService.submitToOrganization(applicationWithFlag, org);
         results[orgId] = response;
         
         if (!response.success) {
