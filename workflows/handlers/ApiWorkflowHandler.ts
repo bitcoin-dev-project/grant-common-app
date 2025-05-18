@@ -147,29 +147,72 @@ export class ApiWorkflowHandler implements WorkflowHandler {
         additionalInfo: {}
       };
       
-      // Categorize fields into sections
+      // Define strict field categorization
+      const fieldCategories: Record<string, keyof typeof formattedSections> = {
+        // Project details
+        'project_name': 'projectDetails',
+        'project_description': 'projectDetails',
+        'short_description': 'projectDetails',
+        'main_focus': 'projectDetails',
+        'potential_impact': 'projectDetails',
+        'github': 'projectDetails',
+        'license': 'projectDetails',
+        'free_open_source': 'projectDetails',
+        'grant_proposal': 'projectDetails',
+        'focus_area_description': 'projectDetails',
+        'grant_purpose': 'projectDetails',
+        
+        // Applicant information
+        'your_name': 'applicantInfo',
+        'name': 'applicantInfo',
+        'email': 'applicantInfo',
+        'personal_github': 'applicantInfo',
+        'twitter_handle': 'applicantInfo',
+        'twitter': 'applicantInfo',
+        'linkedin_profile': 'applicantInfo',
+        'linkedin': 'applicantInfo',
+        'personal_website': 'applicantInfo',
+        'website': 'applicantInfo',
+        'city': 'applicantInfo',
+        'country': 'applicantInfo',
+        'phone': 'applicantInfo',
+        'technical_background': 'applicantInfo',
+        'bitcoin_contributions': 'applicantInfo',
+        'why_considered': 'applicantInfo',
+        'interview_availability': 'applicantInfo'
+        
+        // Everything else goes to additionalInfo
+      };
+      
+      // Process each field into the appropriate section
       Object.entries(application).forEach(([key, value]) => {
-        if (['project_name', 'project_description', 'short_description', 'main_focus', 'potential_impact', 'github', 'license'].includes(key)) {
-          formattedSections.projectDetails[key] = value;
-        } else if (['your_name', 'email', 'personal_github', 'twitter_handle', 'linkedin_profile', 'personal_website'].includes(key)) {
-          formattedSections.applicantInfo[key] = value;
-        } else {
-          formattedSections.additionalInfo[key] = value;
+        // Skip internal flags and organizations (handled separately)
+        if (key === 'isSendingConfirmation' || key === 'organizations') {
+          return;
         }
+        
+        // Determine which section this field belongs to
+        const category = fieldCategories[key] || 'additionalInfo';
+        
+        // Add to the appropriate section
+        formattedSections[category][key] = value;
       });
       
       // Get the list of all organizations the applicant applied to
       const appliedOrgs = application.organizations as string[] || [org.id];
       
+      // Create a copy of the application without the isSendingConfirmation flag
+      const { isSendingConfirmation, ...applicationWithoutFlags } = application;
+      
       // Format email data for OpenSats SendGrid API
       const emailData = {
-        ...application,
+        ...applicationWithoutFlags,
         formattedSections, // Add the organized sections
         recipients: org.workflowConfig?.emailRecipients || [],
         subject: `New Grant Application for ${org.name}`,
         organization: org.name,
         emailTemplate: 'enhanced', // Signal to use the enhanced template
-        isSendingConfirmation: application.isSendingConfirmation, // Pass along the flag for confirmation email
+        isSendingConfirmation, // Keep this only for confirmation email logic
         appliedOrganizations: appliedOrgs // Pass all orgs the applicant applied to
       };
       

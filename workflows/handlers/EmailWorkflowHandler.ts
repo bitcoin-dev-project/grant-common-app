@@ -1,6 +1,7 @@
 import axios from 'axios';
 import sgMail from '@sendgrid/mail';
 import { Organization } from '../../config/organizations';
+import organizations from '../../config/organizations';
 import { WorkflowHandler, SubmissionResponse, mapFields } from '../WorkflowHandler';
 
 // Initialize SendGrid with API key if available
@@ -86,18 +87,73 @@ export class EmailWorkflowHandler implements WorkflowHandler {
         .section { margin-bottom: 25px; }
         .section-title { color: #f89b2b; border-bottom: 2px solid #f89b2b; padding-bottom: 8px; margin-top: 20px; }
         .field { margin-bottom: 15px; }
-        .field-label { font-weight: bold; color: #555; }
-        .field-value { background-color: #f9f9f9; padding: 10px; border-radius: 4px; }
+        .field-label { font-weight: bold; color: #555; margin-bottom: 5px; }
+        .field-value { background-color: #f9f9f9; padding: 10px; border-radius: 4px; overflow-wrap: break-word; word-wrap: break-word; }
+        .long-text { white-space: pre-wrap; max-height: 300px; overflow-y: auto; font-size: 14px; line-height: 1.5; }
         .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #999; }
         em { color: #888; font-style: italic; }
-        code { background: #f4f4f4; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
+        code { background: #f4f4f4; padding: 2px 4px; border-radius: 3px; font-family: monospace; overflow-x: auto; display: block; white-space: pre-wrap; }
         .org-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
         .org-badge { background-color: #f4f4f4; border-radius: 4px; padding: 5px 10px; display: inline-block; font-weight: bold; }
         .applied-orgs { background-color: #f0f8ff; padding: 12px; border-radius: 5px; margin-top: 10px; border-left: 4px solid #4a90e2; }
       `;
       
+      // Define strict categorization for fields - ensure no duplicates
+      const sectionMappings: Record<string, string> = {
+        // Project Details
+        'project_name': 'Project Details',
+        'project_description': 'Project Details',
+        'main_focus': 'Project Details',
+        'potential_impact': 'Project Details',
+        'focus_area_description': 'Project Details',
+        'grant_purpose': 'Project Details',
+        'github': 'Project Details',
+        'license': 'Project Details',
+        'free_open_source': 'Project Details',
+        'grant_proposal': 'Project Details',
+        
+        // Applicant Information
+        'your_name': 'Applicant Information',
+        'name': 'Applicant Information',
+        'email': 'Applicant Information',
+        'personal_github': 'Applicant Information',
+        'twitter_handle': 'Applicant Information',
+        'twitter': 'Applicant Information',
+        'linkedin_profile': 'Applicant Information',
+        'linkedin': 'Applicant Information',
+        'personal_website': 'Applicant Information',
+        'website': 'Applicant Information',
+        'city': 'Applicant Information',
+        'country': 'Applicant Information',
+        'phone': 'Applicant Information',
+        'technical_background': 'Applicant Information',
+        'bitcoin_contributions': 'Applicant Information',
+        'why_considered': 'Applicant Information',
+        
+        // References
+        'references': 'References'
+        
+        // Everything else will go to Additional Information
+      };
+      
+      // Identify fields that should be displayed with special formatting for long text
+      const longTextFields = [
+        'project_description', 
+        'technical_background', 
+        'bitcoin_contributions', 
+        'references',
+        'additional_info',
+        'potential_impact',
+        'focus_area_description',
+        'grant_purpose',
+        'why_considered'
+      ];
+      
       // Process application data
       for (const [key, value] of Object.entries(application)) {
+        // Skip internal flags and organization (handled separately)
+        if (key === 'isSendingConfirmation' || key === 'organizations') continue;
+        
         // Format the field name for display
         const fieldName = key
           .replace(/_/g, ' ')
@@ -125,23 +181,32 @@ export class EmailWorkflowHandler implements WorkflowHandler {
         } else if (typeof value === 'object') {
           displayValue = `<code>${JSON.stringify(value, null, 2)}</code>`;
         } else {
-          displayValue = String(value);
+          // Format text fields appropriately based on length
+          const stringValue = String(value);
+          
+          if (longTextFields.includes(key) && stringValue.length > 100) {
+            // For long text fields, preserve whitespace and formatting
+            displayValue = `<div class="long-text">${stringValue}</div>`;
+          } else {
+            displayValue = stringValue;
+          }
         }
         
-        // Categorize fields into sections
-        if (['project_name', 'project_description', 'main_focus', 'potential_impact', 'focus_area_description', 'grant_purpose', 'github', 'license', 'free_open_source', 'grant_proposal'].includes(key)) {
-          sections['Project Details'].push({ key, label: fieldName, value: displayValue });
-        } else if (['your_name', 'email', 'personal_github', 'twitter_handle', 'linkedin_profile', 'personal_website', 'city', 'country', 'phone', 'technical_background', 'bitcoin_contributions', 'why_considered'].includes(key)) {
-          sections['Applicant Information'].push({ key, label: fieldName, value: displayValue });
-        } else if (['references'].includes(key)) {
-          sections['References'].push({ key, label: fieldName, value: displayValue });
-        } else if (key !== 'organizations') { // Skip organizations for now, we'll handle it separately
-          sections['Additional Information'].push({ key, label: fieldName, value: displayValue });
-        }
+        // Determine which section this field belongs to
+        const sectionName = sectionMappings[key] || 'Additional Information';
+        
+        // Add field to the appropriate section
+        sections[sectionName].push({ key, label: fieldName, value: displayValue });
       }
       
       // Get the list of all organizations the applicant applied to
-      const appliedOrgs = application.organizations as string[] || [org.id];
+      // Ensure organizations is always an array
+      const organizationsField = application.organizations as string | string[] | undefined;
+      const appliedOrgs = Array.isArray(organizationsField) 
+        ? organizationsField 
+        : organizationsField 
+          ? [organizationsField.toString()]
+          : [org.id];
       let appliedOrgsHtml = '';
       
       if (appliedOrgs && appliedOrgs.length > 0) {
@@ -149,7 +214,7 @@ export class EmailWorkflowHandler implements WorkflowHandler {
           <div class="applied-orgs">
             <strong>Applied to Organizations:</strong>
             <div class="org-list">
-              ${appliedOrgs.map(orgId => `<span class="org-badge">${orgId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>`).join('')}
+              ${appliedOrgs.map(orgId => `<span class="org-badge">${orgId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</span>`).join('')}
             </div>
           </div>
         `;
@@ -222,7 +287,16 @@ export class EmailWorkflowHandler implements WorkflowHandler {
       
       if (applicantEmail && isSendingConfirmation) {
         // Get all orgs the applicant applied to for the confirmation email
-        const appliedOrgsList = appliedOrgs?.map(orgId => `<span class="org-badge">${orgId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>`).join('') || '';
+        const appliedOrgsList = appliedOrgs?.map(orgId => `<span class="org-badge">${orgId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</span>`).join('') || '';
+        
+        // Create organization buttons for each org the applicant applied to
+        const orgButtons = appliedOrgs?.map(orgId => {
+          const organization = organizations[orgId];
+          if (organization && organization.website) {
+            return `<a href="${organization.website}" class="button" style="margin-right: 10px; margin-bottom: 10px;">${organization.name}</a>`;
+          }
+          return '';
+        }).join('') || '';
         
         const thankYouMessage = `
         <!DOCTYPE html>
@@ -233,15 +307,12 @@ export class EmailWorkflowHandler implements WorkflowHandler {
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
             .header { background-color: #f89b2b; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
             .content { background-color: #fff; padding: 30px; border-radius: 0 0 5px 5px; border: 1px solid #eee; }
-            .thank-you { font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #333; }
             .message { margin-bottom: 20px; }
-            .org-name { color: #f89b2b; font-weight: bold; }
-            .next-steps { background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-top: 20px; }
-            .next-steps-title { font-weight: bold; margin-bottom: 10px; }
             .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #999; padding-top: 20px; border-top: 1px solid #eee; }
-            .button { display: inline-block; background-color: #f89b2b; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold; margin-top: 15px; }
+            .button { display: inline-block; background-color: #f89b2b; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold; margin-top: 15px; margin-right: 10px; margin-bottom: 10px; }
             .org-list { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
             .org-badge { background-color: #f4f4f4; border-radius: 4px; padding: 5px 10px; display: inline-block; font-weight: bold; }
+            .buttons-container { display: flex; flex-wrap: wrap; margin-top: 20px; }
           </style>
         </head>
         <body>
@@ -250,31 +321,23 @@ export class EmailWorkflowHandler implements WorkflowHandler {
               <h1>Application Received</h1>
             </div>
             <div class="content">
-              <div class="thank-you">Thank you for your application!</div>
-              
               <div class="message">
-                <p>We have received your grant application for the following organizations:</p>
+                <p>Thank you for submitting your grant application to:</p>
                 <div class="org-list">
                   ${appliedOrgsList}
                 </div>
-                <p>Your application details have been securely recorded in our system.</p>
+                
+                <p>Your proposal has been received and will be reviewed by the organization(s). The review process typically takes 2-4 weeks depending on application volume. You'll be notified once a decision has been made or if additional information is needed.</p>
+                
+                <p>If you have any questions or need to update your application, please contact the organization(s) directly using the links below.</p>
               </div>
               
-              <div class="next-steps">
-                <div class="next-steps-title">What happens next?</div>
-                <ul>
-                  <li>Each organization's team will carefully review your application</li>
-                  <li>You may be contacted for additional information if needed</li>
-                  <li>You'll be notified about the status of your application as soon as decisions are made</li>
-                </ul>
+              <div class="buttons-container">
+                ${orgButtons}
               </div>
-              
-              <p>If you have any questions in the meantime, please don't hesitate to reach out to us.</p>
-              
-              <a href="https://opensats.org" class="button">Visit OpenSats</a>
               
               <div class="footer">
-                <p>This is an automated message. Please do not reply directly to this email.</p>
+                <p>This is an automated message from the Bitcoin Grant Application Platform.</p>
               </div>
             </div>
           </div>
@@ -285,7 +348,7 @@ export class EmailWorkflowHandler implements WorkflowHandler {
         const applicantMsg = {
           to: applicantEmail,
           from: verifiedSender,
-          subject: `Your Grant Application Has Been Received`,
+          subject: `Your Bitcoin Grant Application Has Been Successfully Submitted`,
           html: thankYouMessage,
         };
 

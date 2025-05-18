@@ -588,12 +588,7 @@ export default function GrantApplicationForm() {
   return (
     <form 
       onSubmit={(e) => {
-        // Check if we're on the last step - if so, require explicit confirmation
-        if (currentStep === visibleSections.length - 1 && !window.confirm("Are you ready to submit your application?")) {
-          e.preventDefault();
-          return false;
-        }
-        // Otherwise, use the regular handler
+        // Use the regular handler without confirmation
         return handleSubmit(onSubmit)(e);
       }} 
       className="max-w-4xl mx-auto px-4 py-8"

@@ -20,8 +20,20 @@ async function parseFormData(request: Request): Promise<{ fields: Record<string,
         size: (value as any).size,
       };
     } else {
+      // Special handling for known array fields
+      if (key === 'organizations') {
+        if (fields[key]) {
+          if (!Array.isArray(fields[key])) {
+            fields[key] = [fields[key]];
+          }
+          fields[key].push(value);
+        } else {
+          // Initialize as array for known array fields
+          fields[key] = [value];
+        }
+      } 
       // Handle multiple values for the same key (like checkboxes)
-      if (fields[key]) {
+      else if (fields[key]) {
         if (!Array.isArray(fields[key])) {
           fields[key] = [fields[key]];
         }
