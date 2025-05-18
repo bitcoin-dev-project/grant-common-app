@@ -388,6 +388,7 @@ export const allFields: FieldDefinition[] = [
     label: "Grant Proposal",
     description: "Feel free to upload your grant proposal here. For Btrust applications, please use this sample template: https://bit.ly/starter-grant-template",
     type: "file",
+    required: true,
     organizations: ["brink", "spiral", "btrust"],
     section: "project"
   },
