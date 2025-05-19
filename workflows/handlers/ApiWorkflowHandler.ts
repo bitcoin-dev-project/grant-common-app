@@ -34,13 +34,6 @@ export class ApiWorkflowHandler implements WorkflowHandler {
         }
         
         // Handle other consolidated fields
-        if (formattedApplication.additional_info) {
-          // Populate fields that were consolidated into additional_info
-          formattedApplication.bios = formattedApplication.bios || formattedApplication.additional_info;
-          formattedApplication.anything_else = formattedApplication.anything_else || formattedApplication.additional_info;
-        }
-        
-        // Handle consolidated funding fields
         if (formattedApplication.existing_funding) {
           formattedApplication.what_funding = formattedApplication.what_funding || formattedApplication.existing_funding;
           formattedApplication.has_received_funding = true;
