@@ -77,7 +77,6 @@ const organizations: Record<string, Organization> = {
       'personal_github': 'github',
       'bitcoin_contributions': 'bitcoin_contributions',
       'project_description': 'project_description',
-      'additional_info': 'additional_info',
       'grant_proposal': 'grant_proposal',
       'interview_availability': 'interview_availability',
       'satoshi_last_name': 'satoshi_last_name'
@@ -114,7 +113,6 @@ const organizations: Record<string, Organization> = {
       'grant_purpose': 'grant_purpose',
       'project_description': 'project_details',
       'references': 'references',
-      'additional_info': 'additional_info',
       'grant_proposal': 'grant_proposal'
     }
   },
@@ -169,8 +167,7 @@ const organizations: Record<string, Organization> = {
       'project_description': 'project_description',
       'potential_impact': 'potential_impact',
       'project_name': 'project_description',
-      'grant_proposal': 'grant_proposal',
-      'additional_info': 'additional_info'
+      'grant_proposal': 'grant_proposal'
     }
   }
 };

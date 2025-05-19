@@ -1,5 +1,5 @@
 "use client"
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import axios from 'axios'
 import organizations from '../config/organizations'
@@ -44,6 +44,21 @@ const SectionDivider = ({ title }: { title: string }) => (
   </div>
 );
 
+// Field value with type information
+interface ReviewField {
+  label: string;
+  value: any;
+  id: string;
+  type?: string;
+}
+
+// Section with its fields
+interface ReviewSection {
+  title: string;
+  id: string;
+  fields: ReviewField[];
+}
+
 export default function GrantApplicationForm() {
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -53,6 +68,9 @@ export default function GrantApplicationForm() {
   const [draftSaved, setDraftSaved] = useState(false)
   const [draftSaving, setDraftSaving] = useState(false)
   const [readyToSubmit, setReadyToSubmit] = useState(false)
+  const [hasDraftLoaded, setHasDraftLoaded] = useState(false)
+  const [showWelcomeStep, setShowWelcomeStep] = useState(false)
+  const [hasSavedDraft, setHasSavedDraft] = useState(false)
   
   // Create refs properly, not in a callback
   const sectionRefs = useRef<Array<HTMLDivElement | null>>(Array(formSections.length).fill(null));
@@ -62,7 +80,8 @@ export default function GrantApplicationForm() {
     handleSubmit,
     watch,
     trigger,
-    formState: { errors }
+    formState: { errors },
+    reset
   } = useForm<FormData>({
     mode: 'onChange',
     defaultValues: {
@@ -88,6 +107,71 @@ export default function GrantApplicationForm() {
     
     return sectionFields.length > 0;
   });
+  
+  // Check if there's a saved draft
+  useEffect(() => {
+    const savedDraft = localStorage.getItem('grantApplicationDraft');
+    if (savedDraft) {
+      try {
+        const draftData = JSON.parse(savedDraft);
+        if (draftData) {
+          setHasSavedDraft(true);
+          setShowWelcomeStep(true);
+        }
+      } catch (e) {
+        console.error('Error checking for saved draft', e);
+      }
+    }
+  }, []);
+  
+  // Load saved draft data if available
+  const loadSavedDraft = useCallback(() => {
+    const savedDraft = localStorage.getItem('grantApplicationDraft');
+    if (savedDraft) {
+      try {
+        const draftData = JSON.parse(savedDraft);
+        // Reset form with saved data
+        if (draftData) {
+          const { lastStep, ...formData } = draftData;
+          
+          // Restore the form data
+          reset(formData);
+          
+          // Restore the last step if it's valid
+          if (typeof lastStep === 'number' && lastStep >= 0) {
+            setCurrentStep(lastStep);
+          } else {
+            setCurrentStep(0);
+          }
+          
+          // Set the flag to show the draft loaded notification
+          setHasDraftLoaded(true);
+          setTimeout(() => setHasDraftLoaded(false), 5000); // Hide after 5 seconds
+          
+          // Hide welcome step
+          setShowWelcomeStep(false);
+          
+          console.log('Restored saved draft data');
+        }
+      } catch (e) {
+        console.error('Error loading draft', e);
+      }
+    }
+  }, [reset]);
+  
+  // Start a new application
+  const startNewApplication = useCallback(() => {
+    // Reset the form to initial state
+    reset({
+      organizations: []
+    });
+    
+    // Reset to the first step
+    setCurrentStep(0);
+    
+    // Hide welcome step
+    setShowWelcomeStep(false);
+  }, [reset]);
   
   // Next button handler
   const goToNextStep = async () => {
@@ -157,23 +241,8 @@ export default function GrantApplicationForm() {
     }
   }, [currentStep, visibleSections]);
   
-  // Load saved draft data if available
-  useEffect(() => {
-    const savedDraft = localStorage.getItem('grantApplicationDraft');
-    if (savedDraft) {
-      try {
-        const draftData = JSON.parse(savedDraft);
-        // Reset form with saved data
-        // Note: In a real implementation, you would use the reset method from useForm
-        console.log('Found saved draft', draftData);
-      } catch (e) {
-        console.error('Error loading draft', e);
-      }
-    }
-  }, []);
-  
-  // Save current form data as draft
-  const saveDraft = () => {
+  // Save current form data as draft - memoize with useCallback
+  const saveDraft = useCallback(() => {
     setDraftSaving(true);
     
     try {
@@ -196,7 +265,23 @@ export default function GrantApplicationForm() {
       console.error('Error saving draft', e);
       setDraftSaving(false);
     }
-  };
+  }, [currentStep, watch]);
+  
+  // Auto-save draft every minute
+  useEffect(() => {
+    // Don't auto-save if we're on the welcome step
+    if (showWelcomeStep) return;
+    
+    const autoSaveInterval = setInterval(() => {
+      const formData = watch();
+      // Only save if there's meaningful data (at least one organization selected)
+      if (formData.organizations && formData.organizations.length > 0) {
+        saveDraft();
+      }
+    }, 60000); // Save every minute
+    
+    return () => clearInterval(autoSaveInterval);
+  }, [saveDraft, showWelcomeStep, watch]); // Added watch to the dependency array
 
   // Add a validateAllFields function to check all required fields
   const validateAllFields = () => {
@@ -288,6 +373,9 @@ export default function GrantApplicationForm() {
         if (response.data.data) {
           setDebugInfo(response.data.data);
         }
+        
+        // Clear the saved draft when form is successfully submitted
+        localStorage.removeItem('grantApplicationDraft');
       } else {
         setError(response.data.message || 'Failed to submit application');
         if (response.data.error) {
@@ -329,9 +417,9 @@ export default function GrantApplicationForm() {
               >
                 <label 
                   className="flex cursor-pointer"
-                  onClick={(e) => {
+                  onClick={(_) => {
                     if (!isWorkflowReady) {
-                      e.preventDefault();
+                      _.preventDefault();
                     }
                   }}
                 >
@@ -414,6 +502,91 @@ export default function GrantApplicationForm() {
     );
   };
 
+  // Generate review summary of all form data
+  const generateReviewSummary = (): ReviewSection[] => {
+    const formData = watch();
+    const sections: ReviewSection[] = [];
+    
+    // Loop through all visible sections and their fields
+    formSections.forEach(section => {
+      // Skip organization section as we'll handle it specially
+      if (section.id === 'organization') return;
+      
+      // Get fields for this section
+      const sectionFields = getFieldsForSection(section.id, selectedOrgs);
+      if (sectionFields.length === 0) return;
+      
+      const fieldsWithValues = sectionFields
+        .filter(field => formData[field.id] !== undefined && formData[field.id] !== '')
+        .map(field => ({
+          label: field.label,
+          value: formData[field.id],
+          id: field.id,
+          type: field.type
+        }));
+      
+      if (fieldsWithValues.length > 0) {
+        sections.push({
+          title: section.label,
+          id: section.id,
+          fields: fieldsWithValues
+        });
+      }
+    });
+    
+    return sections;
+  };
+  
+  // Render field value based on type
+  const renderFieldValue = (field: ReviewField) => {
+    const { value, type } = field;
+    
+    if (value === undefined || value === null || value === '') {
+      return <em className="text-gray-500">Not provided</em>;
+    }
+    
+    // Handle arrays (like for checkboxes)
+    if (Array.isArray(value)) {
+      return value.join(', ');
+    }
+    
+    // Handle file uploads
+    if (type === 'file') {
+      if (value instanceof FileList && value.length > 0) {
+        return <span className="text-blue-600">{value[0].name}</span>;
+      }
+      return <em className="text-gray-500">No file selected</em>;
+    }
+    
+    // Handle select fields - try to get the label
+    if (type === 'select') {
+      // Find the field definition to get options
+      const fieldDef = formSections
+        .flatMap(s => getFieldsForSection(s.id, selectedOrgs))
+        .find(f => f.id === field.id);
+      
+      if (fieldDef?.options) {
+        const option = fieldDef.options.find(opt => opt.value === value);
+        if (option) return option.label;
+      }
+      return value;
+    }
+    
+    // Long text fields
+    if (type === 'textarea' && typeof value === 'string') {
+      if (value.length > 100) {
+        return (
+          <div className="whitespace-pre-wrap bg-gray-50 p-2 rounded text-sm overflow-y-auto max-h-32">
+            {value}
+          </div>
+        );
+      }
+    }
+    
+    // Default for simple values
+    return value.toString();
+  };
+
   // Render form sections dynamically based on the selected organizations
   const renderFormSection = (sectionIndex: number) => {
     const section = visibleSections[sectionIndex];
@@ -434,42 +607,76 @@ export default function GrantApplicationForm() {
     
     // Special handling for the "other" section (final review)
     if (section.id === "other") {
-      // Add a placeholder field so the section isn't empty
+      // Get the review summary
+      const reviewSummaries = generateReviewSummary();
+      
       return (
         <div ref={(el) => { sectionRefs.current[sectionIndex] = el; }}>
-          <SectionDivider title={section.label} />
+          <SectionDivider title="Review Your Application" />
+          
           <div className="mb-6">
             <p className="text-gray-600 mb-4">
-              Please review your application and click submit when you&apos;re ready.
+              Please review all the information below to make sure it is correct before submitting your application.
             </p>
             
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={readyToSubmit}
-                onChange={() => setReadyToSubmit(!readyToSubmit)}
-                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-              />
-              <span className="ml-2 text-gray-700">I have reviewed my application and I&apos;m ready to submit</span>
-            </label>
-          </div>
-          
-          {/* Render any fields for the other section */}
-          {sectionFields.length > 0 && (
-            <div className="mt-6">
-              {sectionFields.map(field => (
-                <FormInput
-                  key={field.id}
-                  fieldDefinition={field}
-                  name={field.id}
-                  register={register}
-                  error={errors[field.id]}
-                  label={field.label}
-                  selectedOrgs={selectedOrgs}
-                />
-              ))}
+            {/* Organizations */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3 border-b border-gray-200 pb-2">
+                Selected Organizations
+              </h3>
+              <div className="pl-4">
+                <ul className="list-disc space-y-1 text-gray-700">
+                  {selectedOrgs.map(orgId => {
+                    const org = organizations[orgId];
+                    return (
+                      <li key={orgId} className="flex items-center">
+                        <span>{org.name}</span>
+                        {!org.workflowImplemented && (
+                          <span className="ml-2 text-xs px-2 py-0.5 bg-gray-200 text-gray-700 rounded-full">
+                            Coming Soon
+                          </span>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
             </div>
-          )}
+            
+            {/* Display each section */}
+            {reviewSummaries.map(section => (
+              <div key={section.id} className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3 border-b border-gray-200 pb-2">
+                  {section.title}
+                </h3>
+                <div className="space-y-4 pl-4">
+                  {section.fields.map(field => (
+                    <div key={field.id} className="flex flex-col sm:flex-row">
+                      <div className="font-medium text-gray-700 sm:w-1/3 mb-1 sm:mb-0">
+                        {field.label}
+                      </div>
+                      <div className="sm:w-2/3 text-gray-800">
+                        {renderFieldValue(field)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+            
+            {/* Confirmation checkbox */}
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={readyToSubmit}
+                  onChange={() => setReadyToSubmit(!readyToSubmit)}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span className="ml-2 text-gray-700">I have reviewed my application and I&apos;m ready to submit</span>
+              </label>
+            </div>
+          </div>
         </div>
       );
     }
@@ -538,6 +745,203 @@ export default function GrantApplicationForm() {
     );
   };
 
+  // Discard the current draft and reset the form
+  const discardDraft = useCallback(() => {
+    if (window.confirm('Are you sure you want to discard your draft? This action cannot be undone.')) {
+      // Remove from localStorage
+      localStorage.removeItem('grantApplicationDraft');
+      
+      // Reset the form to initial state
+      reset({
+        organizations: []
+      });
+      
+      // Reset to the first step
+      setCurrentStep(0);
+      
+      // Show notification
+      setDraftSaved(false);
+      setDraftSaving(false);
+      setHasSavedDraft(false);
+      
+      // If on welcome screen, hide it
+      if (showWelcomeStep) {
+        setShowWelcomeStep(false);
+      }
+    }
+  }, [reset, showWelcomeStep]);
+
+  // Check if there's currently a draft saved
+  const checkForSavedDraft = useCallback(() => {
+    try {
+      const savedDraft = localStorage.getItem('grantApplicationDraft');
+      return savedDraft && JSON.parse(savedDraft) 
+        && JSON.parse(savedDraft).organizations 
+        && JSON.parse(savedDraft).organizations.length > 0;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  // Navigation Buttons
+  const renderNavigationButtons = () => {
+    const hasDraft = checkForSavedDraft();
+    
+    return (
+      <div className="mt-8 flex justify-between items-center">
+        <div>
+          {currentStep > 0 && (
+            <button
+              type="button"
+              onClick={goToPreviousStep}
+              className="py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center"
+            >
+              <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+              </svg>
+              Previous
+            </button>
+          )}
+        </div>
+        
+        <div className="flex items-center space-x-4">
+          <button
+            type="button"
+            onClick={saveDraft}
+            disabled={draftSaving}
+            className="py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center"
+          >
+            {draftSaving ? (
+              <span className="flex items-center">
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-700" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Saving...
+              </span>
+            ) : draftSaved ? (
+              <span className="flex items-center">
+                <svg className="h-4 w-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Saved!
+              </span>
+            ) : (
+              <span>Save Draft</span>
+            )}
+          </button>
+          
+          {/* Discard Draft button - only shown when there's a draft */}
+          {hasDraft && (
+            <button
+              type="button"
+              onClick={discardDraft}
+              className="py-2 px-4 text-sm text-red-600 hover:text-red-800 hover:underline flex items-center"
+            >
+              <svg className="h-3.5 w-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Discard Draft
+            </button>
+          )}
+          
+          {currentStep < visibleSections.length - 1 ? (
+            <button
+              type="button"
+              onClick={goToNextStep}
+              className="py-3 px-6 rounded-lg font-medium transition-all duration-200 bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md flex items-center justify-center"
+            >
+              Next Step
+              <svg className="h-5 w-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          ) : (
+            <button
+              type="submit"
+              disabled={loading || selectedOrgs.filter(id => organizations[id]?.workflowImplemented).length === 0 || (currentStep === visibleSections.length - 1 && !readyToSubmit)}
+              className={`py-4 px-6 text-lg rounded-lg font-medium transition-all duration-200 shadow-sm flex items-center justify-center ${
+                selectedOrgs.filter(id => organizations[id]?.workflowImplemented).length > 0 && (currentStep !== visibleSections.length - 1 || readyToSubmit)
+                  ? loading 
+                    ? 'bg-blue-400 text-white cursor-not-allowed' 
+                    : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transform hover:-translate-y-0.5'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              {loading ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Submitting...
+                </span>
+              ) : (
+                <span>Submit Application</span>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Render welcome step for users with saved drafts
+  const renderWelcomeStep = () => {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-8 mb-6">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-4">
+            <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back!</h2>
+          <p className="text-gray-600">
+            We noticed you have a saved draft application. Would you like to continue where you left off or start a new application?
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <button
+            type="button"
+            onClick={loadSavedDraft}
+            className="py-4 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow transition-colors flex items-center justify-center"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            Continue Saved Application
+          </button>
+          
+          <button
+            type="button"
+            onClick={startNewApplication}
+            className="py-4 px-6 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg shadow transition-colors flex items-center justify-center"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            Start New Application
+          </button>
+        </div>
+        
+        <div className="mt-6 pt-6 border-t border-gray-200 flex justify-center">
+          <button
+            type="button"
+            onClick={discardDraft}
+            className="text-sm text-red-600 hover:text-red-800 hover:underline flex items-center"
+          >
+            <svg className="h-3.5 w-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+            Discard Saved Draft
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   // If the form has been submitted successfully, show the success message
   if (submitted) {
     return (
@@ -585,6 +989,15 @@ export default function GrantApplicationForm() {
     );
   }
 
+  // If there's a saved draft and we should show the welcome step
+  if (showWelcomeStep && hasSavedDraft) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {renderWelcomeStep()}
+      </div>
+    );
+  }
+
   return (
     <form 
       onSubmit={(e) => {
@@ -593,6 +1006,16 @@ export default function GrantApplicationForm() {
       }} 
       className="max-w-4xl mx-auto px-4 py-8"
     >
+      {/* Draft loaded notification */}
+      {hasDraftLoaded && (
+        <div className="flex items-center p-4 mb-6 text-sm text-blue-800 rounded-lg bg-blue-50" role="alert">
+          <svg className="flex-shrink-0 inline w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clipRule="evenodd"></path>
+          </svg>
+          <span className="font-medium">Your draft has been loaded.</span> You can continue where you left off.
+        </div>
+      )}
+      
       {/* Progress Steps */}
       <div className="mb-8">
         <div className="flex justify-between items-center">
@@ -694,87 +1117,7 @@ export default function GrantApplicationForm() {
         )}
         
         {/* Navigation Buttons */}
-        <div className="mt-8 flex justify-between items-center">
-          <div>
-            {currentStep > 0 && (
-              <button
-                type="button"
-                onClick={goToPreviousStep}
-                className="py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center"
-              >
-                <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-                </svg>
-                Previous
-              </button>
-            )}
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <button
-              type="button"
-              onClick={saveDraft}
-              disabled={draftSaving}
-              className="py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center"
-            >
-              {draftSaving ? (
-                <span className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-700" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Saving...
-                </span>
-              ) : draftSaved ? (
-                <span className="flex items-center">
-                  <svg className="h-4 w-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  Saved!
-                </span>
-              ) : (
-                <span>Save Draft</span>
-              )}
-            </button>
-            
-            {currentStep < visibleSections.length - 1 ? (
-              <button
-                type="button"
-                onClick={goToNextStep}
-                className="py-3 px-6 rounded-lg font-medium transition-all duration-200 bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md flex items-center justify-center"
-              >
-                Next Step
-                <svg className="h-5 w-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            ) : (
-              <button
-                type="submit"
-                disabled={loading || selectedOrgs.filter(id => organizations[id]?.workflowImplemented).length === 0 || (currentStep === visibleSections.length - 1 && !readyToSubmit)}
-                className={`py-4 px-6 text-lg rounded-lg font-medium transition-all duration-200 shadow-sm flex items-center justify-center ${
-                  selectedOrgs.filter(id => organizations[id]?.workflowImplemented).length > 0 && (currentStep !== visibleSections.length - 1 || readyToSubmit)
-                    ? loading 
-                      ? 'bg-blue-400 text-white cursor-not-allowed' 
-                      : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transform hover:-translate-y-0.5'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
-              >
-                {loading ? (
-                  <span className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Submitting...
-                  </span>
-                ) : (
-                  <span>Submit Application</span>
-                )}
-              </button>
-            )}
-          </div>
-        </div>
+        {renderNavigationButtons()}
       </div>
     </form>
   );

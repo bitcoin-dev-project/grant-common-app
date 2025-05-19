@@ -75,7 +75,7 @@ export class EmailWorkflowHandler implements WorkflowHandler {
         'Project Details': [],
         'Applicant Information': [],
         'References': [],
-        'Additional Information': []
+        'Other Information': []
       };
       
       // Common styling for the entire email
@@ -133,7 +133,7 @@ export class EmailWorkflowHandler implements WorkflowHandler {
         // References
         'references': 'References'
         
-        // Everything else will go to Additional Information
+        // Everything else will go to Other Information
       };
       
       // Identify fields that should be displayed with special formatting for long text
@@ -142,7 +142,6 @@ export class EmailWorkflowHandler implements WorkflowHandler {
         'technical_background', 
         'bitcoin_contributions', 
         'references',
-        'additional_info',
         'potential_impact',
         'focus_area_description',
         'grant_purpose',
@@ -193,7 +192,7 @@ export class EmailWorkflowHandler implements WorkflowHandler {
         }
         
         // Determine which section this field belongs to
-        const sectionName = sectionMappings[key] || 'Additional Information';
+        const sectionName = sectionMappings[key] || 'Other Information';
         
         // Add field to the appropriate section
         sections[sectionName].push({ key, label: fieldName, value: displayValue });

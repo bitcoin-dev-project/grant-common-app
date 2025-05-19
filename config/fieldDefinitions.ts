@@ -30,7 +30,7 @@ export const formSections = [
   { id: "budget", label: "Budget" },
   { id: "applicant", label: "Applicant" },
   { id: "references", label: "References" },
-  { id: "other", label: "Other Info" }
+  { id: "other", label: "Review Your Application" }
 ];
 
 // Define all possible fields
@@ -391,16 +391,6 @@ export const allFields: FieldDefinition[] = [
     required: true,
     organizations: ["brink", "spiral", "btrust"],
     section: "project"
-  },
-  // Consolidated additional info field
-  {
-    id: "additional_info",
-    label: "Additional Information",
-    description: "Is there anything else we should be aware of when considering your application?",
-    type: "textarea",
-    placeholder: "Provide any additional information that may be relevant to your application.",
-    organizations: ["brink", "spiral", "btrust", "opensats"],
-    section: "other"
   },
   
   // References section
