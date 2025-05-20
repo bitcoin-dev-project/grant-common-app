@@ -22,7 +22,30 @@ export class ApiWorkflowHandler implements WorkflowHandler {
       const mappedApplication = mapFields(application, org.fieldMapping || {});
       
       // Add any organization-specific transformations
-      let formattedApplication = { ...mappedApplication };
+      let formattedApplication: Record<string, unknown> = {};
+      
+      // Only include fields that are mapped for this organization or are common fields
+      for (const [key, value] of Object.entries(mappedApplication)) {
+        // Skip internal flags and file buffers that shouldn't be sent to the API
+        if (key === 'isSendingConfirmation' || 
+            (typeof value === 'object' && value !== null && 'buffer' in value)) {
+          continue;
+        }
+        
+        // Check if this field is mapped in the organization's fieldMapping
+        const isMappedField = org.fieldMapping && (
+          Object.keys(org.fieldMapping).includes(key) || // Field is a source in mapping
+          Object.values(org.fieldMapping).includes(key)  // Field is a target in mapping
+        );
+        
+        // Check if this is a common field that should be included
+        const isCommonField = ['name', 'email', 'project_name', 'project_description', 'organizations'].includes(key);
+        
+        // Include only relevant fields
+        if (isMappedField || isCommonField) {
+          formattedApplication[key] = value;
+        }
+      }
       
       // Organization-specific transformations
       if (org.id === 'opensats') {
@@ -140,7 +163,7 @@ export class ApiWorkflowHandler implements WorkflowHandler {
         additionalInfo: {}
       };
       
-      // Define strict field categorization
+      // Define strict field categorization - only include fields relevant to OpenSats
       const fieldCategories: Record<string, keyof typeof formattedSections> = {
         // Project details
         'project_name': 'projectDetails',
@@ -179,8 +202,14 @@ export class ApiWorkflowHandler implements WorkflowHandler {
       
       // Process each field into the appropriate section
       Object.entries(application).forEach(([key, value]) => {
-        // Skip internal flags and organizations (handled separately)
-        if (key === 'isSendingConfirmation' || key === 'organizations') {
+        // Skip internal flags, organizations, and fields not relevant to OpenSats
+        if (key === 'isSendingConfirmation' || key === 'organizations' || 
+            (typeof value === 'object' && value !== null && 'buffer' in value)) {
+          return;
+        }
+        
+        // Only include fields that are mapped for OpenSats or are in the field categories
+        if (!fieldCategories[key] && !org.fieldMapping?.[key]) {
           return;
         }
         
@@ -194,18 +223,18 @@ export class ApiWorkflowHandler implements WorkflowHandler {
       // Get the list of all organizations the applicant applied to
       const appliedOrgs = application.organizations as string[] || [org.id];
       
-      // Create a copy of the application without the isSendingConfirmation flag
-      const { isSendingConfirmation, ...applicationWithoutFlags } = application;
-      
-      // Format email data for OpenSats SendGrid API
+      // Create a simplified email data object with only OpenSats-relevant information
       const emailData = {
-        ...applicationWithoutFlags,
-        formattedSections, // Add the organized sections
+        name: application.name || application.your_name,
+        email: application.email,
+        project_name: application.project_name,
+        project_description: application.project_description,
+        formattedSections, // Add the organized sections with only OpenSats-relevant fields
         recipients: org.workflowConfig?.emailRecipients || [],
         subject: `New Grant Application for ${org.name}`,
         organization: org.name,
         emailTemplate: 'enhanced', // Signal to use the enhanced template
-        isSendingConfirmation, // Keep this only for confirmation email logic
+        isSendingConfirmation: application.isSendingConfirmation as boolean, // Keep this only for confirmation email logic
         appliedOrganizations: appliedOrgs // Pass all orgs the applicant applied to
       };
       
