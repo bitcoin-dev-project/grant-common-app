@@ -25,15 +25,38 @@ export class GoogleFormWorkflowHandler implements WorkflowHandler {
       // Apply field mapping if available
       const mappedApplication = mapFields(application, org.fieldMapping || {});
       
+      // Filter to only include fields relevant to this organization
+      const relevantApplication: Record<string, unknown> = {};
+      
+      // Only include fields that are explicitly mapped in formFields or are common fields
+      for (const [key, value] of Object.entries(mappedApplication)) {
+        // Skip internal flags and file buffers
+        if (key === 'isSendingConfirmation' || 
+            (typeof value === 'object' && value !== null && 'buffer' in value)) {
+          continue;
+        }
+        
+        // Check if this field is used in the form fields mapping
+        const isFormField = Object.keys(org.workflowConfig.formFields).includes(key);
+        
+        // Check if this is a common field that should be included
+        const isCommonField = ['name', 'email', 'project_name', 'project_description'].includes(key);
+        
+        // Include only relevant fields
+        if (isFormField || isCommonField) {
+          relevantApplication[key] = value;
+        }
+      }
+      
       // Special handling for date of birth if it exists
-      if (mappedApplication.date_of_birth && typeof mappedApplication.date_of_birth === 'string') {
+      if (relevantApplication.date_of_birth && typeof relevantApplication.date_of_birth === 'string') {
         try {
-          const dateObj = new Date(mappedApplication.date_of_birth as string);
+          const dateObj = new Date(relevantApplication.date_of_birth as string);
           if (!isNaN(dateObj.getTime())) {
             // Add individual date components
-            mappedApplication.date_of_birth_year = dateObj.getFullYear().toString();
-            mappedApplication.date_of_birth_month = (dateObj.getMonth() + 1).toString();
-            mappedApplication.date_of_birth_day = dateObj.getDate().toString();
+            relevantApplication.date_of_birth_year = dateObj.getFullYear().toString();
+            relevantApplication.date_of_birth_month = (dateObj.getMonth() + 1).toString();
+            relevantApplication.date_of_birth_day = dateObj.getDate().toString();
           }
         } catch (e) {
           console.error('Error parsing date of birth:', e);
@@ -47,7 +70,7 @@ export class GoogleFormWorkflowHandler implements WorkflowHandler {
       // Add each field to the form data
       for (const [appField, formField] of Object.entries(formFields)) {
         // Get value from application data, using mapped field if available
-        let value = String(mappedApplication[appField] || '');
+        let value = String(relevantApplication[appField] || '');
         
         if (value) {
           formData.append(formField, value);

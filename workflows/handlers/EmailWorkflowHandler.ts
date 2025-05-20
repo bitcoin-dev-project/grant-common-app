@@ -78,26 +78,6 @@ export class EmailWorkflowHandler implements WorkflowHandler {
         'Other Information': []
       };
       
-      // Common styling for the entire email
-      const emailStyles = `
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #f89b2b; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
-        .content { background-color: #fff; padding: 20px; border-radius: 0 0 5px 5px; border: 1px solid #eee; }
-        .section { margin-bottom: 25px; }
-        .section-title { color: #f89b2b; border-bottom: 2px solid #f89b2b; padding-bottom: 8px; margin-top: 20px; }
-        .field { margin-bottom: 15px; }
-        .field-label { font-weight: bold; color: #555; margin-bottom: 5px; }
-        .field-value { background-color: #f9f9f9; padding: 10px; border-radius: 4px; overflow-wrap: break-word; word-wrap: break-word; }
-        .long-text { white-space: pre-wrap; max-height: 300px; overflow-y: auto; font-size: 14px; line-height: 1.5; }
-        .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #999; }
-        em { color: #888; font-style: italic; }
-        code { background: #f4f4f4; padding: 2px 4px; border-radius: 3px; font-family: monospace; overflow-x: auto; display: block; white-space: pre-wrap; }
-        .org-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
-        .org-badge { background-color: #f4f4f4; border-radius: 4px; padding: 5px 10px; display: inline-block; font-weight: bold; }
-        .applied-orgs { background-color: #f0f8ff; padding: 12px; border-radius: 5px; margin-top: 10px; border-left: 4px solid #4a90e2; }
-      `;
-      
       // Define strict categorization for fields - ensure no duplicates
       const sectionMappings: Record<string, string> = {
         // Project Details
@@ -148,113 +128,169 @@ export class EmailWorkflowHandler implements WorkflowHandler {
         'why_considered'
       ];
       
-      // Process application data
+      // Process each field into a section
       for (const [key, value] of Object.entries(application)) {
-        // Skip internal flags and organization (handled separately)
-        if (key === 'isSendingConfirmation' || key === 'organizations') continue;
+        // Skip internal flags and organizations array, but NOT files
+        if (key === 'isSendingConfirmation' || key === 'organizations') {
+          continue;
+        }
         
-        // Format the field name for display
-        const fieldName = key
-          .replace(/_/g, ' ')
-          .replace(/\b\w/g, (l) => l.toUpperCase());
+        // Only include fields that are mapped for this organization or are common fields
+        // Check if this field is mapped in the organization's fieldMapping
+        const isMappedField = org.fieldMapping && (
+          Object.keys(org.fieldMapping).includes(key) || // Field is a source in mapping
+          Object.values(org.fieldMapping).includes(key)  // Field is a target in mapping
+        );
         
-        // Handle different value types
-        let displayValue = '';
+        // Check if this is a common field that should be included
+        const isCommonField = ['name', 'email', 'project_name', 'project_description', 'grant_proposal'].includes(key);
         
-        // Handle file uploads
-        if (key === 'grant_proposal' && value && typeof value === 'object' && 'buffer' in value) {
-          // This is a file upload
-          const file = value as any;
-          if (file.buffer) {
-            const base64Content = Buffer.from(file.buffer).toString('base64');
-            attachments.push({
-              content: base64Content,
-              filename: file.originalname || 'grant-proposal.pdf',
-              type: file.mimetype || 'application/pdf',
-              disposition: 'attachment'
-            });
-            displayValue = `<em>File attached: ${file.originalname || 'grant-proposal.pdf'}</em>`;
-          }
-        } else if (value === null || value === undefined) {
-          displayValue = '<em>Not provided</em>';
-        } else if (typeof value === 'object') {
-          displayValue = `<code>${JSON.stringify(value, null, 2)}</code>`;
-        } else {
-          // Format text fields appropriately based on length
-          const stringValue = String(value);
+        // Skip fields not relevant to this organization
+        if (!isMappedField && !isCommonField && !sectionMappings[key]) {
+          continue;
+        }
+        
+        // Format the field label
+        let label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        
+        // Format the field value
+        let formattedValue = '';
+        
+        if (value === null || value === undefined) {
+          formattedValue = 'Not provided';
+        } else if (typeof value === 'boolean') {
+          formattedValue = value ? 'Yes' : 'No';
+        } else if (Array.isArray(value)) {
+          formattedValue = value.join(', ');
+        } else if (typeof value === 'object' && 'buffer' in value) {
+          // This is a file, handle it separately
+          const file = value as { buffer: Buffer, originalname: string, mimetype: string };
           
-          if (longTextFields.includes(key) && stringValue.length > 100) {
-            // For long text fields, preserve whitespace and formatting
-            displayValue = `<div class="long-text">${stringValue}</div>`;
-          } else {
-            displayValue = stringValue;
-          }
+          // Add to attachments
+          attachments.push({
+            content: file.buffer.toString('base64'),
+            filename: file.originalname,
+            type: file.mimetype,
+            disposition: 'attachment'
+          });
+          
+          formattedValue = `File attached: ${file.originalname}`;
+        } else {
+          formattedValue = String(value);
         }
         
         // Determine which section this field belongs to
-        const sectionName = sectionMappings[key] || 'Other Information';
+        const section = sectionMappings[key] || 'Other Information';
         
-        // Add field to the appropriate section
-        sections[sectionName].push({ key, label: fieldName, value: displayValue });
+        // Add to the appropriate section
+        sections[section].push({
+          key,
+          label,
+          value: formattedValue
+        });
       }
       
-      // Get the list of all organizations the applicant applied to
-      // Ensure organizations is always an array
-      const organizationsField = application.organizations as string | string[] | undefined;
-      const appliedOrgs = Array.isArray(organizationsField) 
-        ? organizationsField 
-        : organizationsField 
-          ? [organizationsField.toString()]
-          : [org.id];
-      let appliedOrgsHtml = '';
-      
-      if (appliedOrgs && appliedOrgs.length > 0) {
-        appliedOrgsHtml = `
-          <div class="applied-orgs">
-            <strong>Applied to Organizations:</strong>
-            <div class="org-list">
-              ${appliedOrgs.map(orgId => `<span class="org-badge">${orgId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</span>`).join('')}
-            </div>
-          </div>
-        `;
-      }
-      
-      // Build HTML body with sections
+      // Start building HTML email
       htmlBody = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>${emailStyles}</style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>Grant Application for ${org.name}</h1>
-            </div>
-            <div class="content">
-              ${appliedOrgsHtml}
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+          }
+          .container {
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+          }
+          .header {
+            background-color: #0052cc;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px 5px 0 0;
+            margin-bottom: 20px;
+          }
+          .section {
+            margin-bottom: 30px;
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          }
+          .section-title {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-top: 0;
+            color: #0052cc;
+          }
+          .field {
+            margin-bottom: 15px;
+          }
+          .field-label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+          }
+          .field-value {
+            margin: 0;
+          }
+          .long-text {
+            white-space: pre-wrap;
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 3px;
+            border-left: 3px solid #ddd;
+          }
+          .footer {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h2>New Grant Application for ${org.name}</h2>
+          </div>
+          
+          <div class="content">
       `;
       
-      // Add sections to HTML body
-      Object.entries(sections).forEach(([sectionName, fields]) => {
-        if (fields.length > 0) {
-          htmlBody += `
+      // Add each section to the email body
+      for (const [sectionName, fields] of Object.entries(sections)) {
+        // Skip empty sections
+        if (fields.length === 0) continue;
+        
+        htmlBody += `
             <div class="section">
-              <h2 class="section-title">${sectionName}</h2>
-          `;
+              <h3 class="section-title">${sectionName}</h3>
+        `;
+        
+        // Add each field in the section
+        for (const field of fields) {
+          const isLongText = longTextFields.includes(field.key) && field.value.length > 100;
           
-          fields.forEach(({ label, value }) => {
-            htmlBody += `
+          htmlBody += `
               <div class="field">
-                <div class="field-label">${label}</div>
-                <div class="field-value">${value}</div>
+                <div class="field-label">${field.label}:</div>
+                <div class="field-value ${isLongText ? 'long-text' : ''}">
+                  ${field.value}
+                </div>
               </div>
-            `;
-          });
-          
-          htmlBody += `</div>`;
+          `;
         }
-      });
+        
+        htmlBody += `
+            </div>
+        `;
+      }
       
       // Close HTML body
       htmlBody += `
@@ -285,46 +321,85 @@ export class EmailWorkflowHandler implements WorkflowHandler {
       const isSendingConfirmation = application.isSendingConfirmation as boolean;
       
       if (applicantEmail && isSendingConfirmation) {
-        // Get all orgs the applicant applied to for the confirmation email
-        const appliedOrgsList = appliedOrgs?.map(orgId => `<span class="org-badge">${orgId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</span>`).join('') || '';
+        // Get list of all orgs the applicant applied to
+        const appliedOrgs = application.organizations as string[] || [org.id];
         
-        // Create organization buttons for each org the applicant applied to
-        const orgButtons = appliedOrgs?.map(orgId => {
-          const organization = organizations[orgId];
-          if (organization && organization.website) {
-            return `<a href="${organization.website}" class="button" style="margin-right: 10px; margin-bottom: 10px;">${organization.name}</a>`;
+        // Create list items for each org
+        let appliedOrgsList = '';
+        let orgButtons = '';
+        
+        for (const orgId of appliedOrgs) {
+          if (organizations[orgId]) {
+            const orgInfo = organizations[orgId];
+            appliedOrgsList += `<li>${orgInfo.name}</li>`;
+            orgButtons += `
+              <a href="${orgInfo.website}" style="display: inline-block; margin: 10px; padding: 10px 15px; background-color: #0052cc; color: white; text-decoration: none; border-radius: 5px;">
+                ${orgInfo.name} Website
+              </a>
+            `;
           }
-          return '';
-        }).join('') || '';
+        }
         
+        // Create thank you message
         const thankYouMessage = `
         <!DOCTYPE html>
         <html>
         <head>
           <style>
-            body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background-color: #f89b2b; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
-            .content { background-color: #fff; padding: 30px; border-radius: 0 0 5px 5px; border: 1px solid #eee; }
-            .message { margin-bottom: 20px; }
-            .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #999; padding-top: 20px; border-top: 1px solid #eee; }
-            .button { display: inline-block; background-color: #f89b2b; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold; margin-top: 15px; margin-right: 10px; margin-bottom: 10px; }
-            .org-list { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
-            .org-badge { background-color: #f4f4f4; border-radius: 4px; padding: 5px 10px; display: inline-block; font-weight: bold; }
-            .buttons-container { display: flex; flex-wrap: wrap; margin-top: 20px; }
+            body {
+              font-family: Arial, sans-serif;
+              line-height: 1.6;
+              color: #333;
+              max-width: 800px;
+              margin: 0 auto;
+            }
+            .container {
+              padding: 20px;
+              background-color: #f9f9f9;
+              border-radius: 5px;
+            }
+            .header {
+              background-color: #0052cc;
+              color: white;
+              padding: 10px 20px;
+              border-radius: 5px 5px 0 0;
+              margin-bottom: 20px;
+              text-align: center;
+            }
+            .content {
+              background-color: white;
+              padding: 20px;
+              border-radius: 5px;
+              box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            }
+            .org-list {
+              margin: 20px 0;
+            }
+            .buttons-container {
+              margin: 20px 0;
+              text-align: center;
+            }
+            .footer {
+              margin-top: 20px;
+              font-size: 0.9em;
+              color: #666;
+              text-align: center;
+            }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="header">
-              <h1>Application Received</h1>
+              <h2>Your Bitcoin Grant Application Has Been Successfully Submitted</h2>
             </div>
+            
             <div class="content">
-              <div class="message">
-                <p>Thank you for submitting your grant application to:</p>
-                <div class="org-list">
-                  ${appliedOrgsList}
-                </div>
+              <p>Thank you for submitting your grant application to the following organization(s):</p>
+              
+              <div class="org-list">
+                <ul>
+                ${appliedOrgsList}
+                </ul>
                 
                 <p>Your proposal has been received and will be reviewed by the organization(s). The review process typically takes 2-4 weeks depending on application volume. You'll be notified once a decision has been made or if additional information is needed.</p>
                 
