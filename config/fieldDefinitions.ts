@@ -400,7 +400,7 @@ export const allFields: FieldDefinition[] = [
     description: "Please provide the names and contact information of 1-3 references who can speak to your work and expertise.",
     type: "textarea",
     required: true,
-    placeholder: "Format: Name, Email, Relationship (e.g., John Doe, john@example.com, Former colleague)",
+    placeholder: "Format: Name, Email, Role (e.g., John Doe, john@example.com, Bitcoin Core Maintainer)",
     organizations: ["opensats", "btrust", "maelstrom"],
     section: "references"
   },
