@@ -200,16 +200,17 @@ export class EmailWorkflowHandler implements WorkflowHandler {
             font-family: Arial, sans-serif;
             line-height: 1.6;
             color: #333;
-            max-width: 800px;
             margin: 0 auto;
           }
           .container {
             padding: 20px;
             background-color: #f9f9f9;
             border-radius: 5px;
+            max-width: 600px;
+            margin: 0 auto;
           }
           .header {
-            background-color: #0052cc;
+            background-color: #f1760d;
             color: white;
             padding: 10px 20px;
             border-radius: 5px 5px 0 0;
@@ -226,7 +227,7 @@ export class EmailWorkflowHandler implements WorkflowHandler {
             border-bottom: 1px solid #eee;
             padding-bottom: 10px;
             margin-top: 0;
-            color: #0052cc;
+            color: #f1760d;
           }
           .field {
             margin-bottom: 15px;
@@ -235,6 +236,7 @@ export class EmailWorkflowHandler implements WorkflowHandler {
             font-weight: bold;
             margin-bottom: 5px;
             display: block;
+            color: #434347;
           }
           .field-value {
             margin: 0;
@@ -244,12 +246,12 @@ export class EmailWorkflowHandler implements WorkflowHandler {
             background-color: #f5f5f5;
             padding: 10px;
             border-radius: 3px;
-            border-left: 3px solid #ddd;
+            border-left: 3px solid #f1760d;
           }
           .footer {
             margin-top: 20px;
             font-size: 0.9em;
-            color: #666;
+            color: #434347;
             text-align: center;
           }
         </style>
@@ -333,7 +335,7 @@ export class EmailWorkflowHandler implements WorkflowHandler {
             const orgInfo = organizations[orgId];
             appliedOrgsList += `<li>${orgInfo.name}</li>`;
             orgButtons += `
-              <a href="${orgInfo.website}" style="display: inline-block; margin: 10px; padding: 10px 15px; background-color: #0052cc; color: white; text-decoration: none; border-radius: 5px;">
+              <a href="${orgInfo.website}" style="display: inline-block; margin: 10px; padding: 10px 15px; background-color: #f1760d; color: white; text-decoration: none; border-radius: 5px;">
                 ${orgInfo.name} Website
               </a>
             `;
@@ -350,16 +352,17 @@ export class EmailWorkflowHandler implements WorkflowHandler {
               font-family: Arial, sans-serif;
               line-height: 1.6;
               color: #333;
-              max-width: 800px;
               margin: 0 auto;
             }
             .container {
               padding: 20px;
               background-color: #f9f9f9;
               border-radius: 5px;
+              max-width: 600px;
+              margin: 0 auto;
             }
             .header {
-              background-color: #0052cc;
+              background-color: #f1760d;
               color: white;
               padding: 10px 20px;
               border-radius: 5px 5px 0 0;
@@ -382,7 +385,7 @@ export class EmailWorkflowHandler implements WorkflowHandler {
             .footer {
               margin-top: 20px;
               font-size: 0.9em;
-              color: #666;
+              color: #434347;
               text-align: center;
             }
           </style>

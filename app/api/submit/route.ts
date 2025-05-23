@@ -99,7 +99,9 @@ export async function POST(request: Request) {
         const applicationWithFlag = {
           ...application,
           // Only set isSendingConfirmation to true for the first org
-          isSendingConfirmation: i === 0
+          isSendingConfirmation: i === 0,
+          // Always include the full list of valid organizations for the confirmation email
+          organizations: validOrgs
         };
         
         // Submit using the submission service
