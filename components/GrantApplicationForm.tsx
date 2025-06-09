@@ -1,6 +1,7 @@
 "use client"
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
+import ReCAPTCHA from 'react-google-recaptcha'
 import axios from 'axios'
 import organizations from '../config/organizations'
 import { formSections, getFieldsForSection, getRequiredFieldsBySection } from '../config/fieldDefinitions'
@@ -67,10 +68,13 @@ export default function GrantApplicationForm() {
   const [currentStep, setCurrentStep] = useState(0)
   const [draftSaved, setDraftSaved] = useState(false)
   const [draftSaving, setDraftSaving] = useState(false)
-  const [readyToSubmit, setReadyToSubmit] = useState(false)
   const [hasDraftLoaded, setHasDraftLoaded] = useState(false)
   const [showWelcomeStep, setShowWelcomeStep] = useState(false)
   const [hasSavedDraft, setHasSavedDraft] = useState(false)
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null)
+  
+  // Add reCAPTCHA ref
+  const recaptchaRef = useRef<ReCAPTCHA>(null)
   
   // Create refs properly, not in a callback
   const sectionRefs = useRef<Array<HTMLDivElement | null>>(Array(formSections.length).fill(null));
@@ -186,9 +190,6 @@ export default function GrantApplicationForm() {
     }
     
     if (isStepValid) {
-      // Reset ready to submit when advancing to any step
-      setReadyToSubmit(false);
-      
       // Update step
       setCurrentStep(prev => Math.min(prev + 1, visibleSections.length - 1));
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -309,28 +310,38 @@ export default function GrantApplicationForm() {
     setError(null);
     setDebugInfo(null);
     
-    // Add custom client-side validation logic
-    const validationErrors = validateAllFields();
-    
-    // Check if at least one organization with implemented workflow is selected
-    if (!data.organizations.some((orgId: string) => organizations[orgId]?.workflowImplemented === true)) {
-      validationErrors.organizations = "Please select at least one available organization";
-    }
-    
-    // Check if there are any validation errors
-    if (Object.keys(validationErrors).length > 0) {
-      setError("Some required fields are missing or invalid. Please check the form and try again.");
-      setDebugInfo({ validationErrors });
+    // Check if reCAPTCHA token exists
+    if (!recaptchaToken) {
+      setError('Please complete the reCAPTCHA verification.');
       setLoading(false);
       return;
     }
     
     try {
+      // Add custom client-side validation logic
+      const validationErrors = validateAllFields();
+      
+      // Check if at least one organization with implemented workflow is selected
+      if (!data.organizations.some((orgId: string) => organizations[orgId]?.workflowImplemented === true)) {
+        validationErrors.organizations = "Please select at least one available organization";
+      }
+      
+      // Check if there are any validation errors
+      if (Object.keys(validationErrors).length > 0) {
+        setError("Some required fields are missing or invalid. Please check the form and try again.");
+        setDebugInfo({ validationErrors });
+        setLoading(false);
+        return;
+      }
+      
       console.log('Submitting form data:', data);
       
       // Filter out organizations that don't have workflows implemented
       // Use the submittableOrgs directly in the FormData
       const formData = new FormData();
+      
+      // Add the reCAPTCHA token to the form data
+      formData.append('recaptchaToken', recaptchaToken);
       
       // Add the filtered organizations to the FormData
       const submittableOrgs = data.organizations.filter(
@@ -391,6 +402,11 @@ export default function GrantApplicationForm() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Handle reCAPTCHA change
+  const handleRecaptchaChange = (token: string | null) => {
+    setRecaptchaToken(token);
   };
 
   // Filter active organizations
@@ -663,19 +679,6 @@ export default function GrantApplicationForm() {
                 </div>
               </div>
             ))}
-            
-            {/* Confirmation checkbox */}
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={readyToSubmit}
-                  onChange={() => setReadyToSubmit(!readyToSubmit)}
-                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <span className="ml-2 text-gray-700">I have reviewed my application and I&apos;m ready to submit</span>
-              </label>
-            </div>
           </div>
         </div>
       );
@@ -693,16 +696,6 @@ export default function GrantApplicationForm() {
             <p className="text-gray-600 mb-4">
               Please complete the verification question below and review your application before submitting.
             </p>
-            
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={readyToSubmit}
-                onChange={() => setReadyToSubmit(!readyToSubmit)}
-                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-              />
-              <span className="ml-2 text-gray-700">I have reviewed my application and I&apos;m ready to submit</span>
-            </label>
           </div>
           
           {/* Render any fields for the verification section */}
@@ -788,99 +781,119 @@ export default function GrantApplicationForm() {
     const hasDraft = checkForSavedDraft();
     
     return (
-      <div className="mt-8 flex justify-between items-center">
-        <div>
-          {currentStep > 0 && (
+      <div className="mt-8 flex flex-col space-y-4">
+        {/* reCAPTCHA - only show on the final step */}
+        {currentStep === visibleSections.length - 1 && (
+          <div className="flex flex-col items-center space-y-4">
+            <div className="text-center max-w-md">
+              <p className="text-sm text-gray-600 mb-4">
+                By completing the verification below, you confirm that you have reviewed your application and are ready to submit it.
+              </p>
+            </div>
+            <ReCAPTCHA
+              ref={recaptchaRef}
+              sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""}
+              onChange={handleRecaptchaChange}
+              onExpired={() => setRecaptchaToken(null)}
+              onError={() => setRecaptchaToken(null)}
+            />
+          </div>
+        )}
+        
+        <div className="flex justify-between items-center">
+          <div>
+            {currentStep > 0 && (
+              <button
+                type="button"
+                onClick={goToPreviousStep}
+                className="py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Previous
+              </button>
+            )}
+          </div>
+          
+          <div className="flex items-center space-x-4">
             <button
               type="button"
-              onClick={goToPreviousStep}
+              onClick={saveDraft}
+              disabled={draftSaving}
               className="py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center"
             >
-              <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-              </svg>
-              Previous
-            </button>
-          )}
-        </div>
-        
-        <div className="flex items-center space-x-4">
-          <button
-            type="button"
-            onClick={saveDraft}
-            disabled={draftSaving}
-            className="py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center"
-          >
-            {draftSaving ? (
-              <span className="flex items-center">
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-700" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Saving...
-              </span>
-            ) : draftSaved ? (
-              <span className="flex items-center">
-                <svg className="h-4 w-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                Saved!
-              </span>
-            ) : (
-              <span>Save Draft</span>
-            )}
-          </button>
-          
-          {/* Discard Draft button - only shown when there's a draft */}
-          {hasDraft && (
-            <button
-              type="button"
-              onClick={discardDraft}
-              className="py-2 px-4 text-sm text-red-600 hover:text-red-800 hover:underline flex items-center"
-            >
-              <svg className="h-3.5 w-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-              Discard Draft
-            </button>
-          )}
-          
-          {currentStep < visibleSections.length - 1 ? (
-            <button
-              type="button"
-              onClick={goToNextStep}
-              className="py-3 px-6 rounded-lg font-medium transition-all duration-200 bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md flex items-center justify-center"
-            >
-              Next Step
-              <svg className="h-5 w-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          ) : (
-            <button
-              type="submit"
-              disabled={loading || selectedOrgs.filter(id => organizations[id]?.workflowImplemented).length === 0 || (currentStep === visibleSections.length - 1 && !readyToSubmit)}
-              className={`py-4 px-6 text-lg rounded-lg font-medium transition-all duration-200 shadow-sm flex items-center justify-center ${
-                selectedOrgs.filter(id => organizations[id]?.workflowImplemented).length > 0 && (currentStep !== visibleSections.length - 1 || readyToSubmit)
-                  ? loading 
-                    ? 'bg-blue-400 text-white cursor-not-allowed' 
-                    : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transform hover:-translate-y-0.5'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              {loading ? (
+              {draftSaving ? (
                 <span className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-700" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Submitting...
+                  Saving...
+                </span>
+              ) : draftSaved ? (
+                <span className="flex items-center">
+                  <svg className="h-4 w-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Saved!
                 </span>
               ) : (
-                <span>Submit Application</span>
+                <span>Save Draft</span>
               )}
             </button>
-          )}
+            
+            {/* Discard Draft button - only shown when there's a draft */}
+            {hasDraft && (
+              <button
+                type="button"
+                onClick={discardDraft}
+                className="py-2 px-4 text-sm text-red-600 hover:text-red-800 hover:underline flex items-center"
+              >
+                <svg className="h-3.5 w-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Discard Draft
+              </button>
+            )}
+            
+            {currentStep < visibleSections.length - 1 ? (
+              <button
+                type="button"
+                onClick={goToNextStep}
+                className="py-3 px-6 rounded-lg font-medium transition-all duration-200 bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md flex items-center justify-center"
+              >
+                Next Step
+                <svg className="h-5 w-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={loading || selectedOrgs.filter(id => organizations[id]?.workflowImplemented).length === 0 || (currentStep === visibleSections.length - 1 && !recaptchaToken)}
+                className={`py-4 px-6 text-lg rounded-lg font-medium transition-all duration-200 shadow-sm flex items-center justify-center ${
+                  selectedOrgs.filter(id => organizations[id]?.workflowImplemented).length > 0 && (currentStep !== visibleSections.length - 1 || recaptchaToken)
+                    ? loading 
+                      ? 'bg-blue-400 text-white cursor-not-allowed' 
+                      : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transform hover:-translate-y-0.5'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                {loading ? (
+                  <span className="flex items-center">
+                    <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Submitting...
+                  </span>
+                ) : (
+                  <span>Submit Application</span>
+                )}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
