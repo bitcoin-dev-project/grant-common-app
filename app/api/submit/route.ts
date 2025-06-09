@@ -2,6 +2,40 @@ import { NextResponse } from 'next/server'
 import organizations from '../../../config/organizations'
 import { SubmissionService, SubmissionResponse } from '../../../workflows'
 
+// Helper function to verify reCAPTCHA token
+async function verifyRecaptcha(token: string): Promise<{ success: boolean; error?: string }> {
+  const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+  
+  if (!secretKey) {
+    return { success: false, error: 'reCAPTCHA secret key not configured' };
+  }
+  
+  try {
+    const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `secret=${secretKey}&response=${token}`,
+    });
+    
+    const data = await response.json();
+    
+    // For reCAPTCHA v2, just check if verification was successful
+    if (data.success) {
+      return { success: true };
+    } else {
+      return { 
+        success: false, 
+        error: `reCAPTCHA verification failed: ${data['error-codes']?.join(', ') || 'Unknown error'}` 
+      };
+    }
+  } catch (error) {
+    console.error('reCAPTCHA verification error:', error);
+    return { success: false, error: 'Failed to verify reCAPTCHA' };
+  }
+}
+
 // Helper function to parse form data with files
 async function parseFormData(request: Request): Promise<{ fields: Record<string, any>, files: Record<string, any> }> {
   const formData = await request.formData();
@@ -52,14 +86,36 @@ export async function POST(request: Request) {
     // Parse the multipart form data
     const { fields, files } = await parseFormData(request);
     
+    // Verify reCAPTCHA token
+    const recaptchaToken = fields.recaptchaToken;
+    if (!recaptchaToken) {
+      return NextResponse.json(
+        { error: 'reCAPTCHA token missing' }, 
+        { status: 400 }
+      );
+    }
+    
+    const recaptchaVerification = await verifyRecaptcha(recaptchaToken);
+    if (!recaptchaVerification.success) {
+      return NextResponse.json(
+        { error: recaptchaVerification.error || 'reCAPTCHA verification failed' }, 
+        { status: 400 }
+      );
+    }
+    
+    console.log(`reCAPTCHA verification successful.`);
+    
     // Extract organizations from the form data
     const selectedOrgs = Array.isArray(fields.organizations) 
       ? fields.organizations 
       : fields.organizations ? [fields.organizations] : [];
     
     // Combine fields and files into a single application object
+    // Remove the recaptchaToken from the application data since it's not needed for submission
+    const applicationFields = { ...fields };
+    delete applicationFields.recaptchaToken;
     const application = {
-      ...fields,
+      ...applicationFields,
       ...files,
     };
     

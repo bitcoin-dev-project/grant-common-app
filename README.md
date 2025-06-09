@@ -2,6 +2,8 @@
 
 This application provides a common platform where grantees can apply to multiple grant programs in one place, instead of visiting each organization's website individually. A user selects the organizations they want to apply to, and the app forwards their data to the specific grant programs.
 
+**Security Note**: This application includes Google reCAPTCHA v2 to prevent bot submissions and ensure application authenticity.
+
 ## System Design
 
 The system is designed to be flexible and extensible, allowing for different organizations with their own application workflows and field requirements.
@@ -141,11 +143,21 @@ To add a new field:
 
 1. Clone the repository
 2. Install dependencies: `npm install`
-3. Set up environment variables (copy `.env.example` to `.env.local`)
-4. Run the development server: `npm run dev`
+3. Set up environment variables (copy `.env.local.example` to `.env.local`)
+4. Set up Google reCAPTCHA v2:
+   - Go to https://www.google.com/recaptcha/admin/create
+   - Create a new reCAPTCHA v2 site (choose "I'm not a robot" Checkbox)
+   - Add your domain (localhost:3000 for development)
+   - Copy the Site Key and Secret Key to your `.env.local` file
+5. Run the development server: `npm run dev`
 
 ### Environment Variables
 
+**reCAPTCHA Configuration (Required)**
+- `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`: Your Google reCAPTCHA v2 Site Key (public, used in frontend)
+- `RECAPTCHA_SECRET_KEY`: Your Google reCAPTCHA v2 Secret Key (private, used in backend)
+
+**Application Configuration**
 - `OPENSATS_API_URL`: API endpoint for OpenSats
 - `OPENSATS_API_KEY`: API key for OpenSats
 - `OPENSATS_EMAIL_RECIPIENTS`: Comma-separated list of email recipients for OpenSats applications
