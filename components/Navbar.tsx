@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import SmartLink from './SmartLink'
 import { useState, useEffect } from 'react'
 
 export default function Navbar() {
@@ -29,7 +29,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex justify-between items-center">
           {/* Logo and Brand */}
-          <Link href="/" className="flex items-center space-x-2">
+          <SmartLink href="/" className="flex items-center space-x-2">
             <div className={`relative w-8 h-8 ${scrolled ? '' : 'animate-pulse-subtle'}`}>
               <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
                 <rect width="32" height="32" rx="16" fill={scrolled ? "#0D0E12" : "transparent"} />
@@ -45,14 +45,14 @@ export default function Navbar() {
                 Bitcoin Grants
               </span>
             </div>
-          </Link>
+          </SmartLink>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <NavLink href="/#organizations" scrolled={scrolled}>Organizations</NavLink>
             <NavLink href="/#how-it-works" scrolled={scrolled}>How It Works</NavLink>
             <NavLink href="/#faq" scrolled={scrolled}>FAQ</NavLink>
-            <Link 
+            <SmartLink 
               href="/apply" 
               className={`bitcoin-btn px-5 py-2 ${
                 scrolled 
@@ -61,7 +61,7 @@ export default function Navbar() {
               }`}
             >
               Apply Now
-            </Link>
+            </SmartLink>
           </div>
 
           {/* Mobile Menu Button */}
@@ -95,13 +95,13 @@ export default function Navbar() {
               <MobileNavLink href="/#faq" onClick={() => setMobileMenuOpen(false)}>
                 FAQ
               </MobileNavLink>
-              <Link 
+              <SmartLink 
                 href="/apply" 
                 className="bitcoin-btn w-full text-center px-5 py-2 bg-yellow-500 text-gray-900 hover:bg-yellow-400"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Apply Now
-              </Link>
+              </SmartLink>
             </div>
           </div>
         )}
@@ -112,25 +112,25 @@ export default function Navbar() {
 
 function NavLink({ href, scrolled, children }: { href: string, scrolled: boolean, children: React.ReactNode }) {
   return (
-    <Link 
+    <SmartLink 
       href={href} 
       className={`font-medium transition-colors hover:text-yellow-400 ${
         scrolled ? 'text-gray-200' : 'text-white/90'
       }`}
     >
       {children}
-    </Link>
+    </SmartLink>
   )
 }
 
 function MobileNavLink({ href, onClick, children }: { href: string, onClick: () => void, children: React.ReactNode }) {
   return (
-    <Link 
+    <SmartLink 
       href={href} 
       className="block text-gray-200 hover:text-yellow-400 font-medium px-3 py-2"
       onClick={onClick}
     >
       {children}
-    </Link>
+    </SmartLink>
   )
 } 

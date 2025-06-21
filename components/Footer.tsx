@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import SmartLink from './SmartLink'
 
 const organizations = [
   { name: "OpenSats", link: "https://opensats.org" },

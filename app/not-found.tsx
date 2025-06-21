@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import SmartLink from '../components/SmartLink'
 import { motion } from 'framer-motion'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'

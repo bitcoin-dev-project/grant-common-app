@@ -5,7 +5,7 @@ import ReCAPTCHA from 'react-google-recaptcha'
 import axios from 'axios'
 import organizations from '../config/organizations'
 import { formSections, getFieldsForSection, getRequiredFieldsBySection } from '../config/fieldDefinitions'
-import Link from 'next/link'
+import SmartLink from './SmartLink'
 import Image from 'next/image'
 import FormInput from './FormInput'
 
@@ -974,9 +974,9 @@ export default function GrantApplicationForm() {
             </p>
             
             <div className="flex flex-wrap justify-center gap-4">
-              <Link href="/" className="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow transition-colors">
+              <SmartLink href="/" className="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow transition-colors">
                 Return to Home
-              </Link>
+              </SmartLink>
               
               <button 
                 onClick={() => window.print()}

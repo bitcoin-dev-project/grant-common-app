@@ -1,6 +1,6 @@
 "use client"
 import GrantApplicationForm from '../../components/GrantApplicationForm'
-import Link from 'next/link'
+import SmartLink from '../../components/SmartLink'
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
 import { motion } from 'framer-motion'
@@ -31,12 +31,12 @@ export default function ApplyPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <Link href="/" className="inline-flex items-center text-gray-300 hover:text-yellow-300 mb-8 transition-colors">
+              <SmartLink href="/" className="inline-flex items-center text-gray-300 hover:text-yellow-300 mb-8 transition-colors">
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                 </svg>
                 Back to home
-              </Link>
+              </SmartLink>
               <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">Bitcoin Grant Application</h1>
               <p className="text-xl text-gray-300 max-w-3xl">
                 Complete the form below to apply for funding from Bitcoin organizations. Your application will be sent to the organizations you select.

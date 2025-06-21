@@ -1,6 +1,6 @@
 "use client"
 
-import Link from 'next/link'
+import SmartLink from '../components/SmartLink'
 import Navbar from '../components/Navbar'
 import Hero from '../components/Hero'
 import FeaturedOrg from '../components/FeaturedOrg'
@@ -216,12 +216,12 @@ export default function Home() {
           <p className="text-xl text-black/80 max-w-3xl mx-auto mb-10">
             Complete our common application form to submit your Bitcoin project for funding consideration from multiple organizations.
           </p>
-          <Link 
+          <SmartLink 
             href="/apply" 
             className="inline-block px-8 py-4 bg-black hover:bg-gray-900 text-white font-bold rounded-lg text-lg transition-all shadow-lg hover:shadow-xl"
           >
             Start Your Application
-          </Link>
+          </SmartLink>
         </div>
       </section>
 
