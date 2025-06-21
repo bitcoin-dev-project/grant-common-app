@@ -1,11 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Configure base path based on environment variable
-  // Only apply basePath when NEXT_PUBLIC_BASE_PATH is explicitly set
-  ...(process.env.NEXT_PUBLIC_BASE_PATH && {
-    basePath: process.env.NEXT_PUBLIC_BASE_PATH,
-    assetPrefix: process.env.NEXT_PUBLIC_BASE_PATH,
+  // Only fix asset paths when served through proxy - don't change app routing
+  // This fixes CSS, JS, and _next/static assets when served at /grants
+  ...(process.env.NEXT_PUBLIC_ASSET_PREFIX && {
+    assetPrefix: process.env.NEXT_PUBLIC_ASSET_PREFIX,
   }),
   // Ensures Tailwind CSS works properly
   experimental: {

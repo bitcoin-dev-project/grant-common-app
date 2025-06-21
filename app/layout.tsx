@@ -1,7 +1,7 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import { withBasePath } from '../lib/utils'
+import { withAssetPrefix } from '../lib/utils'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: 'Bitcoin Grants Common Application',
   description: 'A unified platform for applying to Bitcoin-related grants across multiple organizations.',
   icons: {
-    icon: withBasePath('/favicon.ico'),
+    icon: withAssetPrefix('/favicon.ico'),
   },
   keywords: ['Bitcoin', 'grants', 'funding', 'cryptocurrency', 'open source', 'OpenSats', 'Brink', 'Btrust', 'Maelstrom', 'Spiral'],
   authors: [{ name: 'Bitcoin Grants Common Application' }],

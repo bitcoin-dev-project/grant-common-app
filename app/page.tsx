@@ -7,38 +7,38 @@ import FeaturedOrg from '../components/FeaturedOrg'
 import ProcessStep from '../components/ProcessStep'
 import FaqAccordion from '../components/FaqAccordion'
 import Footer from '../components/Footer'
-import { withBasePath } from '../lib/utils'
+import { withAssetPrefix } from '../lib/utils'
 
 export default function Home() {
   // Organization data
   const organizations = [
     {
       name: "OpenSats",
-      logo: withBasePath("/logos/opensats.png"),
+      logo: withAssetPrefix("/logos/opensats.png"),
       description: "Supporting open source Bitcoin development and education through sustainable funding models.",
       accentColor: "bg-orange-500",
     },
     {
       name: "Btrust",
-      logo: withBasePath("/logos/btrust.jpg"),
-      description: "Advancing Bitcoin development throughout Africa and beyond, focusing on self-sovereignty.",
-      accentColor: "bg-blue-600",
-    },
-    {
-      name: "Brink",
-      logo: withBasePath("/logos/brink.png"),
-      description: "Supporting Bitcoin protocol developers and research to strengthen the Bitcoin network.",
-      accentColor: "bg-purple-600",
-    },
-    {
-      name: "Maelstrom",
-      logo: withBasePath("/logos/maelstrom.png"),
-      description: "Supporting Bitcoin developers to enhance Bitcoin's resilience, scalability, censorship resistance and privacy.",
-      accentColor: "bg-blue-600",
-    },
-    {
-      name: "Spiral",
-      logo: withBasePath("/logos/spiral.svg"),
+              logo: withAssetPrefix("/logos/btrust.jpg"),
+        description: "Advancing Bitcoin development throughout Africa and beyond, focusing on self-sovereignty.",
+        accentColor: "bg-blue-600",
+      },
+      {
+        name: "Brink",
+        logo: withAssetPrefix("/logos/brink.png"),
+        description: "Supporting Bitcoin protocol developers and research to strengthen the Bitcoin network.",
+        accentColor: "bg-purple-600",
+      },
+      {
+        name: "Maelstrom",
+        logo: withAssetPrefix("/logos/maelstrom.png"),
+        description: "Supporting Bitcoin developers to enhance Bitcoin's resilience, scalability, censorship resistance and privacy.",
+        accentColor: "bg-blue-600",
+      },
+      {
+        name: "Spiral",
+        logo: withAssetPrefix("/logos/spiral.svg"),
       description: "Making bitcoin more than an investment through FOSS Bitcoin Grants for developers and designers.",
       accentColor: "bg-yellow-600",
     },
