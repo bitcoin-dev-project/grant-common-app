@@ -63,6 +63,14 @@ export class EmailWorkflowHandler implements WorkflowHandler {
       throw new Error('SendGrid verified sender is not configured (SENDGRID_VERIFIED_SENDER)');
     }
 
+    // Add debug logging
+    console.log(`🔧 SendGrid Config Debug:`);
+    console.log(`   Verified Sender: ${verifiedSender}`);
+    console.log(`   Organization: ${org.name}`);
+    console.log(`   Email Recipients: ${org.workflowConfig?.emailRecipients?.join(', ')}`);
+    console.log(`   Applicant Email: ${application.email}`);
+    console.log(`   Is Sending Confirmation: ${application.isSendingConfirmation}`);
+
     try {
       // Format the application data for the email body
       let htmlBody = '';
@@ -323,6 +331,8 @@ export class EmailWorkflowHandler implements WorkflowHandler {
       const isSendingConfirmation = application.isSendingConfirmation as boolean;
       
       if (applicantEmail && isSendingConfirmation) {
+        console.log(`📧 Preparing confirmation email for: ${applicantEmail}`);
+        
         // Get list of all orgs the applicant applied to
         const appliedOrgs = application.organizations as string[] || [org.id];
         
@@ -429,8 +439,32 @@ export class EmailWorkflowHandler implements WorkflowHandler {
           html: thankYouMessage,
         };
 
-        await sgMail.send(applicantMsg);
-        console.log(`Consolidated confirmation email sent to applicant: ${applicantEmail}`);
+        try {
+          console.log(`📤 Sending confirmation email:`);
+          console.log(`   FROM: ${verifiedSender}`);
+          console.log(`   TO: ${applicantEmail}`);
+          console.log(`   Subject: Your Bitcoin Grant Application Has Been Successfully Submitted`);
+          
+          await sgMail.send(applicantMsg);
+          console.log(`✅ Confirmation email sent successfully to: ${applicantEmail}`);
+        } catch (emailError) {
+          console.error(`❌ Failed to send confirmation email to ${applicantEmail}:`);
+          console.error(`   Error:`, emailError);
+          
+          // Log SendGrid specific error details
+          if (emailError && typeof emailError === 'object' && 'response' in emailError) {
+            const sgError = emailError as any;
+            console.error(`   SendGrid Error Details:`, {
+              statusCode: sgError.code,
+              body: sgError.response?.body,
+              headers: sgError.response?.headers
+            });
+          }
+          
+          // Don't throw here - we still want the org submission to succeed
+          // even if confirmation email fails
+          console.log(`⚠️  Continuing with submission despite confirmation email failure`);
+        }
       }
       
       return {
