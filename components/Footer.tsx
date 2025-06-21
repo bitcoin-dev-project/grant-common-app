@@ -111,12 +111,12 @@ export default function Footer() {
             <ul className="space-y-3">
               {resources.map((resource, index) => (
                 <li key={index}>
-                  <Link 
+                  <SmartLink 
                     href={resource.link} 
                     className="text-gray-400 hover:text-yellow-400 transition-colors text-sm"
                   >
                     {resource.name}
-                  </Link>
+                  </SmartLink>
                 </li>
               ))}
             </ul>
@@ -147,12 +147,12 @@ export default function Footer() {
               © {new Date().getFullYear()} Bitcoin Grants Common Application. All rights reserved.
             </p>
             <div className="mt-4 md:mt-0 flex space-x-6">
-              <Link href="/privacy" className="text-gray-400 hover:text-yellow-400 text-sm">
+              <SmartLink href="/privacy" className="text-gray-400 hover:text-yellow-400 text-sm">
                 Privacy Policy
-              </Link>
-              <Link href="/terms" className="text-gray-400 hover:text-yellow-400 text-sm">
+              </SmartLink>
+              <SmartLink href="/terms" className="text-gray-400 hover:text-yellow-400 text-sm">
                 Terms of Service
-              </Link>
+              </SmartLink>
             </div>
           </div>
         </div>

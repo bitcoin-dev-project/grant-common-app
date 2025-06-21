@@ -36,18 +36,18 @@ export default function NotFound() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link 
+              <SmartLink 
                 href="/" 
                 className="bitcoin-btn px-6 py-3 bg-gradient-to-r from-yellow-500 to-amber-500 text-gray-900 font-bold rounded-lg shadow-lg hover:shadow-yellow-500/30 transition-all"
               >
                 Go to Homepage
-              </Link>
-              <Link 
+              </SmartLink>
+              <SmartLink 
                 href="/apply" 
                 className="bitcoin-btn px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-lg border border-gray-700 transition-all"
               >
                 Apply for Funding
-              </Link>
+              </SmartLink>
             </div>
           </motion.div>
         </div>
