@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import SmartLink from './SmartLink'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 
@@ -100,18 +100,18 @@ export default function Hero() {
             variants={item}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <Link 
+            <SmartLink 
               href="/apply" 
               className="bitcoin-btn px-8 py-4 bg-gradient-to-r from-yellow-500 to-amber-500 text-gray-900 font-bold rounded-lg text-lg shadow-lg hover:shadow-yellow-500/30 focus:ring-offset-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:shadow-xl transition-all duration-200"
             >
               Start Application
-            </Link>
-            <Link 
+            </SmartLink>
+            <SmartLink 
               href="#organizations" 
               className="bitcoin-btn px-8 py-4 bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-lg text-lg border border-gray-700 transition-all"
             >
               View Organizations
-            </Link>
+            </SmartLink>
           </motion.div>
 
           <motion.div 
