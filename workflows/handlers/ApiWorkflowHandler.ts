@@ -120,7 +120,9 @@ export class ApiWorkflowHandler implements WorkflowHandler {
         method,
         url: org.apiUrl,
         data: formattedApplication,
-        headers
+        headers,
+        timeout: 30000, // 30 seconds timeout
+        timeoutErrorMessage: `Request to ${org.name} API timed out after 30 seconds`
       });
 
       // For OpenSats, also send to the SendGrid API URL
@@ -165,7 +167,10 @@ export class ApiWorkflowHandler implements WorkflowHandler {
       const formattedData = this.formatOpenSatsData(application);
       
       // Call the SendGrid endpoint
-      const response = await axios.post(sendgridApiUrl, formattedData);
+      const response = await axios.post(sendgridApiUrl, formattedData, {
+        timeout: 25000, // 25 seconds timeout
+        timeoutErrorMessage: 'OpenSats SendGrid API request timed out'
+      });
       
       if (response.data.message !== 'success') {
         console.warn(`OpenSats SendGrid API returned non-success: ${response.data.message}`);

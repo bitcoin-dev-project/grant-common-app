@@ -2,10 +2,15 @@
 
 import SmartLink from './SmartLink'
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const pathname = usePathname()
+  
+  // Detect if we're on a light background page
+  const isLightPage = pathname === '/apply' || pathname === '/test'
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,16 +28,26 @@ export default function Navbar() {
   return (
     <nav 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-gray-900/95 backdrop-blur shadow-lg py-2' : 'bg-transparent py-4'
+        isLightPage 
+          ? 'bg-white/95 backdrop-blur shadow-lg py-2' 
+          : scrolled 
+            ? 'bg-gray-900/95 backdrop-blur shadow-lg py-2' 
+            : 'bg-transparent py-4'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex justify-between items-center">
           {/* Logo and Brand */}
           <SmartLink href="/" className="flex items-center space-x-2">
-            <div className={`relative w-8 h-8 ${scrolled ? '' : 'animate-pulse-subtle'}`}>
+            <div className={`relative w-8 h-8 ${scrolled || isLightPage ? '' : 'animate-pulse-subtle'}`}>
               <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-                <rect width="32" height="32" rx="16" fill={scrolled ? "#0D0E12" : "transparent"} />
+                <rect width="32" height="32" rx="16" fill={
+                  isLightPage 
+                    ? "#F3F4F6" 
+                    : scrolled 
+                      ? "#0D0E12" 
+                      : "transparent"
+                } />
                 <path d="M20.5714 14.2857C21.3536 13.2768 21.2746 11.7143 19.8214 11C18.375 10.2857 16.5714 11 16.0714 11.5714L14.2143 13.4286" stroke="#F2A900" strokeWidth="2" strokeLinecap="round"/>
                 <path d="M12.1429 14.8571C11 15.8571 10.3536 18.0089 11.8929 19.2857C13.4286 20.5536 15.4286 19.8571 16 19.2857L17.8571 17.4286" stroke="#F2A900" strokeWidth="2" strokeLinecap="round"/>
                 <path d="M16 7L16 25" stroke="#F2A900" strokeWidth="2" strokeLinecap="round"/>
@@ -41,7 +56,13 @@ export default function Navbar() {
               </svg>
             </div>
             <div>
-              <span className={`font-bold text-lg transition-colors ${scrolled ? 'text-white' : 'text-white/90'}`}>
+              <span className={`font-bold text-lg transition-colors ${
+                isLightPage 
+                  ? 'text-gray-900' 
+                  : scrolled 
+                    ? 'text-white' 
+                    : 'text-white/90'
+              }`}>
                 Bitcoin Grants
               </span>
             </div>
@@ -49,9 +70,9 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <NavLink href="/#organizations" scrolled={scrolled}>Organizations</NavLink>
-            <NavLink href="/#how-it-works" scrolled={scrolled}>How It Works</NavLink>
-            <NavLink href="/#faq" scrolled={scrolled}>FAQ</NavLink>
+            <NavLink href="/#organizations" scrolled={scrolled} isLightPage={isLightPage}>Organizations</NavLink>
+            <NavLink href="/#how-it-works" scrolled={scrolled} isLightPage={isLightPage}>How It Works</NavLink>
+            <NavLink href="/#faq" scrolled={scrolled} isLightPage={isLightPage}>FAQ</NavLink>
             <SmartLink 
               href="/apply" 
               className={`bitcoin-btn px-5 py-2 ${
@@ -66,7 +87,7 @@ export default function Navbar() {
 
           {/* Mobile Menu Button */}
           <button 
-            className="md:hidden text-white"
+            className={`md:hidden transition-colors ${isLightPage ? 'text-gray-900' : 'text-white'}`}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -84,15 +105,15 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden mt-3 py-3 border-t border-gray-700">
+          <div className={`md:hidden mt-3 py-3 border-t ${isLightPage ? 'border-gray-300' : 'border-gray-700'}`}>
             <div className="flex flex-col space-y-4 pt-2 pb-3">
-              <MobileNavLink href="/#organizations" onClick={() => setMobileMenuOpen(false)}>
+              <MobileNavLink href="/#organizations" onClick={() => setMobileMenuOpen(false)} isLightPage={isLightPage}>
                 Organizations
               </MobileNavLink>
-              <MobileNavLink href="/#how-it-works" onClick={() => setMobileMenuOpen(false)}>
+              <MobileNavLink href="/#how-it-works" onClick={() => setMobileMenuOpen(false)} isLightPage={isLightPage}>
                 How It Works
               </MobileNavLink>
-              <MobileNavLink href="/#faq" onClick={() => setMobileMenuOpen(false)}>
+              <MobileNavLink href="/#faq" onClick={() => setMobileMenuOpen(false)} isLightPage={isLightPage}>
                 FAQ
               </MobileNavLink>
               <SmartLink 
@@ -110,12 +131,16 @@ export default function Navbar() {
   )
 }
 
-function NavLink({ href, scrolled, children }: { href: string, scrolled: boolean, children: React.ReactNode }) {
+function NavLink({ href, scrolled, isLightPage, children }: { href: string, scrolled: boolean, isLightPage: boolean, children: React.ReactNode }) {
   return (
     <SmartLink 
       href={href} 
       className={`font-medium transition-colors hover:text-yellow-400 ${
-        scrolled ? 'text-gray-200' : 'text-white/90'
+        isLightPage 
+          ? 'text-gray-700 hover:text-yellow-600' 
+          : scrolled 
+            ? 'text-gray-200' 
+            : 'text-white/90'
       }`}
     >
       {children}
@@ -123,11 +148,15 @@ function NavLink({ href, scrolled, children }: { href: string, scrolled: boolean
   )
 }
 
-function MobileNavLink({ href, onClick, children }: { href: string, onClick: () => void, children: React.ReactNode }) {
+function MobileNavLink({ href, onClick, isLightPage, children }: { href: string, onClick: () => void, isLightPage: boolean, children: React.ReactNode }) {
   return (
     <SmartLink 
       href={href} 
-      className="block text-gray-200 hover:text-yellow-400 font-medium px-3 py-2"
+      className={`block font-medium px-3 py-2 transition-colors ${
+        isLightPage 
+          ? 'text-gray-700 hover:text-yellow-600' 
+          : 'text-gray-200 hover:text-yellow-400'
+      }`}
       onClick={onClick}
     >
       {children}

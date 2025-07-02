@@ -87,6 +87,8 @@ export class GoogleFormWorkflowHandler implements WorkflowHandler {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
+        timeout: 25000, // 25 seconds timeout
+        timeoutErrorMessage: `${org.name} Google Form submission timed out`,
         maxRedirects: 0, // Google Form may redirect on success
         validateStatus: (status) => status === 200 || status === 302,
       });

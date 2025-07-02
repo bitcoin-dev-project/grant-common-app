@@ -20,26 +20,26 @@ export default function Home() {
     },
     {
       name: "Btrust",
-              logo: withAssetPrefix("/logos/btrust.jpg"),
-        description: "Advancing Bitcoin development throughout Africa and beyond, focusing on self-sovereignty.",
-        accentColor: "bg-blue-600",
-      },
-      {
-        name: "Brink",
-        logo: withAssetPrefix("/logos/brink.png"),
-        description: "Supporting Bitcoin protocol developers and research to strengthen the Bitcoin network.",
-        accentColor: "bg-purple-600",
-      },
-      {
-        name: "Maelstrom",
-        logo: withAssetPrefix("/logos/maelstrom.png"),
-        description: "Supporting Bitcoin developers to enhance Bitcoin's resilience, scalability, censorship resistance and privacy.",
-        accentColor: "bg-blue-600",
-      },
-      {
-        name: "Spiral",
-        logo: withAssetPrefix("/logos/spiral.svg"),
-      description: "Making bitcoin more than an investment through FOSS Bitcoin Grants for developers and designers.",
+      logo: withAssetPrefix("/logos/btrust.jpg"),
+      description: "Advancing Bitcoin development throughout Africa and beyond, focusing on self-sovereignty.",
+      accentColor: "bg-blue-600",
+    },
+    {
+      name: "Brink",
+      logo: withAssetPrefix("/logos/brink.png"),
+      description: "Supporting Bitcoin protocol developers and research to strengthen the Bitcoin network.",
+      accentColor: "bg-purple-600",
+    },
+    {
+      name: "Maelstrom",
+      logo: withAssetPrefix("/logos/maelstrom.png"),
+      description: "Supporting Bitcoin developers to enhance Bitcoin's resilience, scalability, censorship resistance and privacy.",
+      accentColor: "bg-blue-600",
+    },
+    {
+      name: "Spiral",
+      logo: withAssetPrefix("/logos/spiral.svg"),
+      description: "Making Bitcoin more than an investment through FOSS Bitcoin Grants for developers and designers.",
       accentColor: "bg-yellow-600",
     },
   ];
