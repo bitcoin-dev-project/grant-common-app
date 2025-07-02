@@ -50,7 +50,7 @@ const organizations: Record<string, Organization> = {
     },
     fieldMapping: {
       'project_description': 'project_description',
-      // No special mapping needed for OpenSats
+      'bitcoin_dev_years': 'years_experience'
     }
   },
   brink: {

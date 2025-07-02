@@ -325,7 +325,7 @@ export const allFields: FieldDefinition[] = [
       { value: "0-4 years", label: "0-4 years" },
       { value: "5+ years", label: "5+ years" }
     ],
-    organizations: ["maelstrom"],
+    organizations: ["maelstrom", "opensats"],
     section: "applicant"
   },
   // OpenSats specific fields
