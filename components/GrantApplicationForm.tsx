@@ -341,6 +341,7 @@ export default function GrantApplicationForm() {
   }, [showWelcomeStep, isClient, saveDraft, watch]);
 
   // Add a validateAllFields function to check all required fields
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const validateAllFields = () => {
     const data = watch();
     const missingFields: Record<string, string> = {};
@@ -936,17 +937,11 @@ export default function GrantApplicationForm() {
     }
   }, [isClient]);
 
-  // Check if there are files in the form that won't be saved in draft
-  const checkForFiles = useCallback(() => {
-    if (!isClient || typeof FileList === 'undefined') return false;
-    const formData = watch();
-    return Object.values(formData).some(value => value instanceof FileList && value.length > 0);
-  }, [watch, isClient]);
+
 
   // Navigation Buttons
   const renderNavigationButtons = () => {
     const hasDraft = checkForSavedDraft();
-    const hasFiles = checkForFiles();
     
     return (
       <div className="mt-8 flex flex-col space-y-4">
@@ -1141,7 +1136,6 @@ export default function GrantApplicationForm() {
       : 0;
 
     const currentOrgIndex = submissionProgress.currentOrgIndex;
-    const currentOrg = submissionProgress.organizations[currentOrgIndex];
 
     return (
       <div className="max-w-4xl mx-auto px-4 py-6">
@@ -1181,7 +1175,6 @@ export default function GrantApplicationForm() {
             {submissionProgress.organizations.map((org, index) => {
               const isCurrent = currentOrgIndex === index;
               const isCompleted = org.status === 'success' || org.status === 'error';
-              const isPending = org.status === 'pending';
               const isProcessing = org.status === 'processing';
               
               return (
