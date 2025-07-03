@@ -10,7 +10,7 @@ export default function Navbar() {
   const pathname = usePathname()
   
   // Detect if we're on a light background page
-  const isLightPage = pathname === '/apply' || pathname === '/test'
+  const isLightPage = pathname === '/apply'
 
   useEffect(() => {
     const handleScroll = () => {
