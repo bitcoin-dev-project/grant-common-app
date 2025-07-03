@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://bitcoingrants.org',
+    url: 'https://grants.bitcoindevs.xyz',
     title: 'Bitcoin Grants Common Application',
     description: 'Apply once, reach multiple Bitcoin funding organizations. Submit your project for consideration and accelerate your path to funding.',
     siteName: 'Bitcoin Grants Common Application',
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
-  metadataBase: new URL('https://bitcoingrants.org'),
+  metadataBase: new URL('https://grants.bitcoindevs.xyz'),
 }
 
 export default function RootLayout({
