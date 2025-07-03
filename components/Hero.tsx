@@ -35,7 +35,7 @@ export default function Hero() {
   ]
 
   return (
-    <div className="relative overflow-hidden bg-gray-900 h-screen flex items-center">
+    <div className="relative overflow-hidden bg-gray-900 min-h-screen flex items-center">
       <div className="absolute inset-0 z-0 opacity-20">
         <div className="absolute inset-0 bg-gradient-to-b from-orange-500/20 to-yellow-500/20 mix-blend-multiply"></div>
         {/* Bitcoin Symbols */}
@@ -61,26 +61,27 @@ export default function Hero() {
         ></div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-16 md:py-24 lg:py-32">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-20 md:py-24 lg:py-32">
         <motion.div 
-          className="max-w-3xl mx-auto text-center"
+          className="max-w-4xl mx-auto text-center"
           initial="hidden"
           animate={hasLoaded ? "show" : "hidden"}
           variants={container}
         >
           <motion.div variants={item}>
-            <div className="inline-flex items-center justify-center px-4 py-2 bg-gray-800/70 backdrop-blur-sm rounded-full text-sm font-medium text-yellow-400 mb-8 gap-2">
+            <div className="inline-flex items-center justify-center px-3 py-2 sm:px-4 bg-gray-800/70 backdrop-blur-sm rounded-full text-xs sm:text-sm font-medium text-yellow-400 mb-6 sm:mb-8 gap-2">
               <span className="flex h-2 w-2 relative">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
               </span>
-              Just Launched - One Application For All Organizations
+              <span className="hidden sm:inline">Just Launched - One Application For All Organizations</span>
+              <span className="sm:hidden">Just Launched</span>
             </div>
           </motion.div>
 
           <motion.h1 
             variants={item}
-            className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-white tracking-tight mb-6"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white tracking-tight mb-4 sm:mb-6"
           >
             Bitcoin Grants
             <br />
@@ -91,24 +92,24 @@ export default function Hero() {
 
           <motion.p 
             variants={item}
-            className="text-xl text-gray-300 max-w-2xl mx-auto mb-10"
+            className="text-base sm:text-lg md:text-xl text-gray-300 max-w-2xl mx-auto mb-8 sm:mb-10 px-4 sm:px-0"
           >
             Apply once, reach multiple Bitcoin funding organizations. Submit your project for consideration and accelerate your path to funding.
           </motion.p>
 
           <motion.div 
             variants={item}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
+            className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0"
           >
             <SmartLink 
               href="/apply" 
-              className="bitcoin-btn px-8 py-4 bg-gradient-to-r from-yellow-500 to-amber-500 text-gray-900 font-bold rounded-lg text-lg shadow-lg hover:shadow-yellow-500/30 focus:ring-offset-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:shadow-xl transition-all duration-200"
+              className="bitcoin-btn px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-yellow-500 to-amber-500 text-gray-900 font-bold rounded-lg text-base sm:text-lg shadow-lg hover:shadow-yellow-500/30 focus:ring-offset-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:shadow-xl transition-all duration-200"
             >
               Start Application
             </SmartLink>
             <SmartLink 
               href="#organizations" 
-              className="bitcoin-btn px-8 py-4 bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-lg text-lg border border-gray-700 transition-all"
+              className="bitcoin-btn px-6 sm:px-8 py-3 sm:py-4 bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-lg text-base sm:text-lg border border-gray-700 transition-all"
             >
               View Organizations
             </SmartLink>
@@ -116,29 +117,31 @@ export default function Hero() {
 
           <motion.div 
             variants={item} 
-            className="mt-16 flex justify-center"
+            className="mt-12 sm:mt-16 flex justify-center px-4 sm:px-0"
           >
-            <div className="bg-gray-800/70 backdrop-blur-sm rounded-full px-6 py-3 flex items-center justify-center gap-3 shadow-inner border border-gray-700/50">
-              <div className="flex items-center">
-                <svg className="w-5 h-5 text-yellow-500 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="currentColor" fillOpacity="0.2" stroke="currentColor" strokeWidth="1.5" />
-                  <path d="M8 12L11 15L16 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                <span className="text-white text-sm">Easy Application</span>
-              </div>
-              <span className="h-4 w-[1px] bg-gray-700"></span>
-              <div className="flex items-center">
-                <svg className="w-5 h-5 text-yellow-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                <span className="text-white text-sm">5 Organizations</span>
-              </div>
-              <span className="h-4 w-[1px] bg-gray-700"></span>
-              <div className="flex items-center">
-                <svg className="w-5 h-5 text-yellow-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span className="text-white text-sm">Save Time</span>
+            <div className="bg-gray-800/70 backdrop-blur-sm rounded-full px-4 sm:px-6 py-2 sm:py-3 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 shadow-inner border border-gray-700/50 max-w-full">
+              <div className="flex items-center flex-wrap justify-center gap-2 sm:gap-3">
+                <div className="flex items-center">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500 mr-1 sm:mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="currentColor" fillOpacity="0.2" stroke="currentColor" strokeWidth="1.5" />
+                    <path d="M8 12L11 15L16 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span className="text-white text-xs sm:text-sm">Easy</span>
+                </div>
+                <span className="hidden sm:block h-4 w-[1px] bg-gray-700"></span>
+                <div className="flex items-center">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  <span className="text-white text-xs sm:text-sm">5 Orgs</span>
+                </div>
+                <span className="hidden sm:block h-4 w-[1px] bg-gray-700"></span>
+                <div className="flex items-center">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-white text-xs sm:text-sm">Fast</span>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -146,14 +149,14 @@ export default function Hero() {
       </div>
 
       {/* Down Arrow */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+      <div className="absolute bottom-6 sm:bottom-8 left-1/2 transform -translate-x-1/2">
         <a 
           href="#organizations" 
           className="flex flex-col items-center text-gray-400 hover:text-yellow-400 transition-colors"
         >
-          <span className="text-sm mb-2">Learn More</span>
+          <span className="text-xs sm:text-sm mb-2">Learn More</span>
           <svg 
-            className="w-6 h-6 animate-bounce" 
+            className="w-5 h-5 sm:w-6 sm:h-6 animate-bounce" 
             fill="none" 
             stroke="currentColor" 
             viewBox="0 0 24 24"

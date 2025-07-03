@@ -17,10 +17,31 @@
   html {
     font-family: 'Inter', system-ui, sans-serif;
     scroll-behavior: smooth;
+    overflow-x: hidden;
+  }
+  
+  body {
+    overflow-x: hidden;
   }
   
   h1, h2, h3, h4, h5, h6 {
     @apply tracking-tight;
+  }
+  
+  /* Prevent horizontal scroll on mobile */
+  * {
+    max-width: 100%;
+  }
+  
+  /* Better mobile text rendering */
+  @media (max-width: 640px) {
+    h1, h2, h3, h4, h5, h6 {
+      line-height: 1.2;
+    }
+    
+    p {
+      line-height: 1.5;
+    }
   }
 }
 
@@ -56,11 +77,46 @@
            bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600;
     mix-blend-mode: overlay;
   }
+  
+  /* Mobile-specific button improvements */
+  @media (max-width: 640px) {
+    .bitcoin-btn {
+      min-height: 44px; /* iOS recommended touch target */
+    }
+    
+    /* Ensure all interactive elements meet minimum touch target size */
+    button, 
+    a[role="button"],
+    input[type="button"],
+    input[type="submit"],
+    input[type="reset"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Better spacing for form elements on mobile */
+    .form-input,
+    input,
+    select,
+    textarea {
+      font-size: 16px; /* Prevents zoom on iOS */
+    }
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  
+  /* Mobile-safe container */
+  .mobile-safe {
+    @apply px-4 max-w-full;
+  }
+  
+  /* Prevent text overflow on mobile */
+  .text-mobile-safe {
+    @apply break-words hyphens-auto;
   }
 }
 
@@ -169,4 +225,23 @@ body {
 
 .animate-fadeIn {
   animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Mobile viewport fixes */
+@media (max-width: 640px) {
+  /* Prevent zoom on form inputs on iOS */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+  
+  /* Better touch targets */
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Prevent horizontal scroll */
+  .container, .max-w-7xl, .max-w-6xl, .max-w-4xl, .max-w-3xl {
+    overflow-x: hidden;
+  }
 } 

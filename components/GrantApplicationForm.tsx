@@ -39,9 +39,9 @@ function focusElementByName(name: string) {
 
 // Section divider component
 const SectionDivider = ({ title }: { title: string }) => (
-  <div className="mb-8">
-    <h2 className="text-2xl font-bold text-gray-900 mb-2">{title}</h2>
-    <div className="h-1 w-20 bg-blue-500 rounded"></div>
+  <div className="mb-6 sm:mb-8">
+    <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 leading-tight">{title}</h2>
+    <div className="h-1 w-16 sm:w-20 bg-blue-500 rounded"></div>
   </div>
 );
 
@@ -822,16 +822,16 @@ export default function GrantApplicationForm() {
             </p>
             
             {/* Organizations */}
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3 border-b border-gray-200 pb-2">
+            <div className="mb-6 sm:mb-8">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3 border-b border-gray-200 pb-2">
                 Selected Organizations
               </h3>
-              <div className="pl-4">
-                <ul className="list-disc space-y-1 text-gray-700">
+              <div className="pl-2 sm:pl-4">
+                <ul className="list-disc space-y-1 text-gray-700 text-sm sm:text-base">
                   {selectedOrgs.map(orgId => {
                     const org = organizations[orgId];
                     return (
-                      <li key={orgId} className="flex items-center">
+                      <li key={orgId} className="flex items-center flex-wrap">
                         <span>{org.name}</span>
                         {!org.workflowImplemented && (
                           <span className="ml-2 text-xs px-2 py-0.5 bg-gray-200 text-gray-700 rounded-full">
@@ -847,17 +847,17 @@ export default function GrantApplicationForm() {
             
             {/* Display each section */}
             {reviewSummaries.map(section => (
-              <div key={section.id} className="mb-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3 border-b border-gray-200 pb-2">
+              <div key={section.id} className="mb-6 sm:mb-8">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3 border-b border-gray-200 pb-2">
                   {section.title}
                 </h3>
-                <div className="space-y-4 pl-4">
+                <div className="space-y-3 sm:space-y-4 pl-2 sm:pl-4">
                   {section.fields.map(field => (
                     <div key={field.id} className="flex flex-col sm:flex-row">
-                      <div className="font-medium text-gray-700 sm:w-1/3 mb-1 sm:mb-0">
+                      <div className="font-medium text-gray-700 sm:w-1/3 mb-1 sm:mb-0 text-sm sm:text-base">
                         {field.label}
                       </div>
-                      <div className="sm:w-2/3 text-gray-800">
+                      <div className="sm:w-2/3 text-gray-800 text-sm sm:text-base break-words">
                         {renderFieldValue(field)}
                       </div>
                     </div>
@@ -989,28 +989,72 @@ export default function GrantApplicationForm() {
           </div>
         )}
         
-        <div className="flex justify-between items-center">
-          <div>
-            {currentStep > 0 && (
-              <button
-                type="button"
-                onClick={goToPreviousStep}
-                className="py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center"
-              >
-                <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-                </svg>
-                Previous
-              </button>
-            )}
+        {/* Mobile Layout */}
+        <div className="sm:hidden space-y-4">
+          {/* Previous/Next Buttons Row */}
+          <div className="flex justify-between items-center">
+            <div className="flex-1">
+              {currentStep > 0 && (
+                <button
+                  type="button"
+                  onClick={goToPreviousStep}
+                  className="w-full py-3 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center justify-center text-sm font-medium min-h-[44px]"
+                >
+                  <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Previous
+                </button>
+              )}
+            </div>
+            
+            <div className="flex-1 ml-3">
+              {currentStep < visibleSections.length - 1 ? (
+                <button
+                  type="button"
+                  onClick={goToNextStep}
+                  className="w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center text-sm min-h-[44px]"
+                >
+                  Next Step
+                  <svg className="h-4 w-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={loading || selectedOrgs.filter(id => organizations[id]?.workflowImplemented).length === 0 || (currentStep === visibleSections.length - 1 && !recaptchaToken)}
+                  className={`w-full py-3 px-4 text-sm rounded-lg font-medium transition-all duration-200 flex items-center justify-center min-h-[44px] ${
+                    selectedOrgs.filter(id => organizations[id]?.workflowImplemented).length > 0 && (currentStep !== visibleSections.length - 1 || recaptchaToken)
+                      ? loading 
+                        ? 'bg-blue-400 text-white cursor-not-allowed' 
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
+                >
+                  {loading ? (
+                    <span className="flex items-center">
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Submitting...
+                    </span>
+                  ) : (
+                    <span>Submit Application</span>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
           
-          <div className="flex items-center space-x-4">
+          {/* Save/Discard Buttons Row */}
+          <div className="flex justify-center space-x-4">
             <button
               type="button"
               onClick={saveDraft}
               disabled={draftSaving}
-              className="py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center"
+              className="py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center text-sm min-h-[44px]"
             >
               {draftSaving ? (
                 <span className="flex items-center">
@@ -1037,7 +1081,67 @@ export default function GrantApplicationForm() {
               <button
                 type="button"
                 onClick={discardDraft}
-                className="py-2 px-4 text-sm text-red-600 hover:text-red-800 hover:underline flex items-center"
+                className="py-2 px-4 text-sm text-red-600 hover:text-red-800 hover:underline flex items-center min-h-[44px]"
+              >
+                <svg className="h-3.5 w-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Discard Draft
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Desktop Layout */}
+        <div className="hidden sm:flex justify-between items-center">
+          <div>
+            {currentStep > 0 && (
+              <button
+                type="button"
+                onClick={goToPreviousStep}
+                className="py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center min-h-[44px]"
+              >
+                <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Previous
+              </button>
+            )}
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <button
+              type="button"
+              onClick={saveDraft}
+              disabled={draftSaving}
+              className="py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center min-h-[44px]"
+            >
+              {draftSaving ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-700" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Saving...
+                </span>
+              ) : draftSaved ? (
+                <span className="flex items-center">
+                  <svg className="h-4 w-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Saved!
+                </span>
+              ) : (
+                <span>Save Draft</span>
+              )}
+            </button>
+            
+            {/* Discard Draft button - only shown when there's a draft */}
+            {hasDraft && (
+              <button
+                type="button"
+                onClick={discardDraft}
+                className="py-2 px-4 text-sm text-red-600 hover:text-red-800 hover:underline flex items-center min-h-[44px]"
               >
                 <svg className="h-3.5 w-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -1050,7 +1154,7 @@ export default function GrantApplicationForm() {
               <button
                 type="button"
                 onClick={goToNextStep}
-                className="py-3 px-6 rounded-lg font-medium transition-all duration-200 bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md flex items-center justify-center"
+                className="py-3 px-6 rounded-lg font-medium transition-all duration-200 bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md flex items-center justify-center min-h-[44px]"
               >
                 Next Step
                 <svg className="h-5 w-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1061,7 +1165,7 @@ export default function GrantApplicationForm() {
               <button
                 type="submit"
                 disabled={loading || selectedOrgs.filter(id => organizations[id]?.workflowImplemented).length === 0 || (currentStep === visibleSections.length - 1 && !recaptchaToken)}
-                className={`py-4 px-6 text-lg rounded-lg font-medium transition-all duration-200 shadow-sm flex items-center justify-center ${
+                className={`py-4 px-6 text-lg rounded-lg font-medium transition-all duration-200 shadow-sm flex items-center justify-center min-h-[44px] ${
                   selectedOrgs.filter(id => organizations[id]?.workflowImplemented).length > 0 && (currentStep !== visibleSections.length - 1 || recaptchaToken)
                     ? loading 
                       ? 'bg-blue-400 text-white cursor-not-allowed' 
@@ -1091,26 +1195,26 @@ export default function GrantApplicationForm() {
   // Render welcome step for users with saved drafts
   const renderWelcomeStep = () => {
     return (
-      <div className="bg-white rounded-lg shadow-md p-8 mb-6">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-4">
-            <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 lg:p-8 mb-6">
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-blue-100 mb-3 sm:mb-4">
+            <svg className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back!</h2>
-          <p className="text-gray-600">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Welcome Back!</h2>
+          <p className="text-sm sm:text-base text-gray-600">
             We noticed you have a saved draft application. Would you like to continue where you left off or start a new application?
           </p>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <button
             type="button"
             onClick={loadSavedDraft}
-            className="py-4 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow transition-colors flex items-center justify-center"
+            className="py-3 sm:py-4 px-4 sm:px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow transition-colors flex items-center justify-center text-sm sm:text-base font-medium min-h-[48px]"
           >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
             </svg>
             Continue Saved Application
@@ -1119,22 +1223,22 @@ export default function GrantApplicationForm() {
           <button
             type="button"
             onClick={startNewApplication}
-            className="py-4 px-6 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg shadow transition-colors flex items-center justify-center"
+            className="py-3 sm:py-4 px-4 sm:px-6 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg shadow transition-colors flex items-center justify-center text-sm sm:text-base font-medium min-h-[48px]"
           >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
             </svg>
             Start New Application
           </button>
         </div>
         
-        <div className="mt-6 pt-6 border-t border-gray-200 flex justify-center">
+        <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200 flex justify-center">
           <button
             type="button"
             onClick={discardDraft}
-            className="text-sm text-red-600 hover:text-red-800 hover:underline flex items-center"
+            className="text-xs sm:text-sm text-red-600 hover:text-red-800 hover:underline flex items-center min-h-[44px]"
           >
-            <svg className="h-3.5 w-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
             </svg>
             Discard Saved Draft
@@ -1360,18 +1464,18 @@ export default function GrantApplicationForm() {
   // If the form has been partially submitted, show the partial success message
   if (partiallySubmitted && submissionResults) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-white shadow-lg rounded-lg p-8 border-t-4 border-yellow-500">
+      <div className="max-w-4xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
+        <div className="bg-white shadow-lg rounded-lg p-4 sm:p-6 lg:p-8 border-t-4 border-yellow-500">
           <div className="flex flex-col items-center text-center">
-            <div className="rounded-full bg-yellow-100 p-3 mb-4">
-              <svg className="h-12 w-12 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="rounded-full bg-yellow-100 p-2 sm:p-3 mb-3 sm:mb-4">
+              <svg className="h-8 w-8 sm:h-12 sm:w-12 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 19c-.77.833.192 2.5 1.732 2.5z"></path>
               </svg>
             </div>
             
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Partial Submission Complete</h2>
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">Partial Submission Complete</h2>
             
-            <p className="text-lg text-gray-600 mb-6">
+            <p className="text-sm sm:text-base lg:text-lg text-gray-600 mb-4 sm:mb-6">
               Your application was submitted to <span className="font-semibold text-green-600">{submissionResults.submissionSummary.successful}</span> of <span className="font-semibold">{submissionResults.submissionSummary.total}</span> organizations.
             </p>
             
@@ -1437,29 +1541,29 @@ export default function GrantApplicationForm() {
   // If the form has been submitted successfully, show the success message
   if (submitted) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-white shadow-lg rounded-lg p-8 border-t-4 border-green-500">
+      <div className="max-w-4xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
+        <div className="bg-white shadow-lg rounded-lg p-4 sm:p-6 lg:p-8 border-t-4 border-green-500">
           <div className="flex flex-col items-center text-center">
-            <div className="rounded-full bg-green-100 p-3 mb-4">
-              <svg className="h-12 w-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="rounded-full bg-green-100 p-2 sm:p-3 mb-3 sm:mb-4">
+              <svg className="h-8 w-8 sm:h-12 sm:w-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
               </svg>
             </div>
             
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Application Submitted!</h2>
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">Application Submitted!</h2>
             
-            <p className="text-lg text-gray-600 mb-6">
+            <p className="text-sm sm:text-base lg:text-lg text-gray-600 mb-4 sm:mb-6">
               Thank you for your application. We have received your submission and will review it shortly.
             </p>
             
-            <div className="flex flex-wrap justify-center gap-4">
-              <SmartLink href="/" className="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow transition-colors">
+            <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 sm:gap-4 w-full max-w-md">
+              <SmartLink href="/" className="py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow transition-colors text-center font-medium min-h-[44px] flex items-center justify-center">
                 Return to Home
               </SmartLink>
               
               <button 
                 onClick={() => window.print()}
-                className="py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg shadow transition-colors"
+                className="py-3 px-4 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg shadow transition-colors font-medium min-h-[44px] flex items-center justify-center"
               >
                 Print Application
               </button>
@@ -1473,7 +1577,7 @@ export default function GrantApplicationForm() {
   // If there's a saved draft and we should show the welcome step
   if (showWelcomeStep && hasSavedDraft) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
         {renderWelcomeStep()}
       </div>
     );
@@ -1485,7 +1589,7 @@ export default function GrantApplicationForm() {
         // Use the regular handler without confirmation
         return handleSubmit(onSubmit)(e);
       }} 
-      className="max-w-4xl mx-auto px-4 py-8"
+      className="max-w-4xl mx-auto px-2 sm:px-4 py-4 sm:py-8"
     >
       {/* Draft loaded notification */}
       {hasSavedDraft && (
@@ -1520,44 +1624,49 @@ export default function GrantApplicationForm() {
       )}
       
       {/* Progress Steps */}
-      <div className="mb-8">
-        <div className="flex justify-between items-center">
+      <div className="mb-6 sm:mb-8">
+        <div className="flex justify-between items-center px-2 sm:px-0">
           {visibleSections.map((section, index) => (
             <button
               key={section.id}
               type="button"
               onClick={() => goToStep(index)}
               disabled={index > currentStep}
-              className={`flex flex-col items-center ${
+              className={`flex flex-col items-center min-w-0 flex-1 px-1 ${
                 index <= currentStep
                   ? 'text-blue-600 cursor-pointer'
                   : 'text-gray-400 cursor-not-allowed'
               }`}
             >
-              <div className={`flex items-center justify-center h-8 w-8 rounded-full mb-1 ${
+              <div className={`flex items-center justify-center h-6 w-6 sm:h-8 sm:w-8 rounded-full mb-1 sm:mb-2 text-xs sm:text-sm font-medium ${
                 index < currentStep
                   ? 'bg-blue-600 text-white'
                   : index === currentStep
-                    ? 'border-2 border-blue-600 text-blue-600'
-                    : 'border-2 border-gray-300 text-gray-400'
+                    ? 'border-2 border-blue-600 text-blue-600 bg-white'
+                    : 'border-2 border-gray-300 text-gray-400 bg-white'
               }`}>
                 {index < currentStep ? (
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-3 w-3 sm:h-4 sm:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                   </svg>
                 ) : (
                   <span>{index + 1}</span>
                 )}
               </div>
-              <span className="text-xs hidden sm:block">{section.label}</span>
+              <span className="text-xs sm:text-sm text-center leading-tight max-w-full truncate">
+                <span className="hidden sm:inline">{section.label}</span>
+                <span className="sm:hidden">
+                  {section.label.split(' ')[0]}
+                </span>
+              </span>
             </button>
           ))}
         </div>
         
-        <div className="relative mt-2">
-          <div className="absolute top-1/2 transform -translate-y-1/2 h-0.5 w-full bg-gray-200"></div>
+        <div className="relative mt-3 sm:mt-4 mx-2 sm:mx-0">
+          <div className="absolute top-1/2 transform -translate-y-1/2 h-0.5 w-full bg-gray-200 rounded-full"></div>
           <div 
-            className="absolute top-1/2 transform -translate-y-1/2 h-0.5 bg-blue-600 transition-all duration-300"
+            className="absolute top-1/2 transform -translate-y-1/2 h-0.5 bg-blue-600 transition-all duration-300 rounded-full"
             style={{ 
               width: `${(currentStep / (visibleSections.length - 1)) * 100}%` 
             }}
@@ -1566,7 +1675,7 @@ export default function GrantApplicationForm() {
       </div>
       
       {/* Form Sections */}
-      <div className="bg-white shadow-lg rounded-lg p-8">
+      <div className="bg-white shadow-lg rounded-lg p-4 sm:p-6 lg:p-8">
         {/* Current Section */}
         {renderFormSection(currentStep)}
         

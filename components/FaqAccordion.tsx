@@ -14,13 +14,13 @@ function FaqItem({ question, answer }: FaqItemProps) {
   return (
     <div className="border-b border-gray-200 last:border-b-0">
       <button
-        className="flex w-full items-center justify-between py-6 text-left text-lg font-medium text-gray-900 focus:outline-none"
+        className="flex w-full items-center justify-between py-4 sm:py-6 text-left text-base sm:text-lg font-medium text-gray-900 focus:outline-none pr-2 sm:pr-0"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span>{question}</span>
-        <span className="ml-6 flex-shrink-0">
+        <span className="flex-1 pr-4">{question}</span>
+        <span className="flex-shrink-0">
           <svg
-            className={`h-6 w-6 transform transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+            className={`h-5 w-5 sm:h-6 sm:w-6 transform transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -44,8 +44,8 @@ function FaqItem({ question, answer }: FaqItemProps) {
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: [0.04, 0.62, 0.23, 0.98] }}
           >
-            <div className="pb-6 pr-12">
-              <div className="text-base text-gray-600 space-y-2">
+            <div className="pb-4 sm:pb-6 pr-6 sm:pr-12">
+              <div className="text-sm sm:text-base text-gray-600 space-y-2">
                 {answer}
               </div>
             </div>
@@ -119,7 +119,7 @@ export default function FaqAccordion() {
 
   return (
     <div className="mx-auto w-full max-w-3xl divide-y divide-gray-200 rounded-2xl bg-white p-2 gradient-border">
-      <h2 className="p-6 text-2xl font-extrabold text-center text-gray-900">
+      <h2 className="p-4 sm:p-6 text-xl sm:text-2xl font-extrabold text-center text-gray-900">
         Frequently Asked Questions
       </h2>
       <dl className="divide-y divide-gray-200">

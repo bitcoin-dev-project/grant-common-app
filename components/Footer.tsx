@@ -51,10 +51,10 @@ export default function Footer() {
     <footer className="bg-gray-900 border-t border-gray-800 mt-auto" aria-labelledby="footerHeading">
       <h2 id="footerHeading" className="sr-only">Footer</h2>
       
-      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 xl:gap-12">
-          <div>
-            <div className="flex items-center space-x-2 mb-6">
+      <div className="max-w-7xl mx-auto py-8 sm:py-12 px-4 sm:px-6 lg:py-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 xl:gap-12">
+          <div className="sm:col-span-2 lg:col-span-1">
+            <div className="flex items-center space-x-2 mb-4 sm:mb-6">
               <div className="relative w-8 h-8">
                 <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
                   <rect width="32" height="32" rx="16" fill="#0D0E12" />
@@ -65,14 +65,14 @@ export default function Footer() {
                   <circle cx="16" cy="25" r="1" fill="#F2A900"/>
                 </svg>
               </div>
-              <span className="font-bold text-lg text-white">
+              <span className="font-bold text-base sm:text-lg text-white">
                 Bitcoin Grants
               </span>
             </div>
-            <p className="text-gray-400 text-sm mb-6">
+            <p className="text-gray-400 text-sm mb-4 sm:mb-6">
               A unified platform for applying to Bitcoin-related grants across multiple organizations. One application. Multiple opportunities.
             </p>
-            <div className="flex space-x-5">
+            <div className="flex space-x-4 sm:space-x-5">
               {socialLinks.map((item, index) => (
                 <a 
                   key={index} 
@@ -89,8 +89,8 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="text-white font-bold mb-4 text-lg">Organizations</h3>
-            <ul className="space-y-3">
+            <h3 className="text-white font-bold mb-3 sm:mb-4 text-base sm:text-lg">Organizations</h3>
+            <ul className="space-y-2 sm:space-y-3">
               {organizations.map((org, index) => (
                 <li key={index}>
                   <a 
@@ -107,8 +107,8 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="text-white font-bold mb-4 text-lg">Resources</h3>
-            <ul className="space-y-3">
+            <h3 className="text-white font-bold mb-3 sm:mb-4 text-base sm:text-lg">Resources</h3>
+            <ul className="space-y-2 sm:space-y-3">
               {resources.map((resource, index) => (
                 <li key={index}>
                   <SmartLink 
@@ -123,16 +123,16 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="text-white font-bold mb-4 text-lg">Contact</h3>
-            <ul className="space-y-3 text-sm">
+            <h3 className="text-white font-bold mb-3 sm:mb-4 text-base sm:text-lg">Contact</h3>
+            <ul className="space-y-2 sm:space-y-3 text-sm">
               <li className="flex items-start">
-                <svg className="w-5 h-5 text-gray-400 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                <span className="text-gray-400">support@bitcoingrants.org</span>
+                <span className="text-gray-400 break-all">support@bitcoingrants.org</span>
               </li>
               <li className="flex items-start">
-                <svg className="w-5 h-5 text-gray-400 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span className="text-gray-400">Common grants FAQ for all Bitcoin projects</span>
@@ -141,16 +141,16 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-gray-800">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center">
-            <p className="text-gray-400 text-sm">
+        <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-gray-800">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
+            <p className="text-gray-400 text-xs sm:text-sm text-center sm:text-left">
               © {new Date().getFullYear()} Bitcoin Grants Common Application. All rights reserved.
             </p>
-            <div className="mt-4 md:mt-0 flex space-x-6">
-              <SmartLink href="/privacy" className="text-gray-400 hover:text-yellow-400 text-sm">
+            <div className="flex justify-center sm:justify-end space-x-4 sm:space-x-6">
+              <SmartLink href="/privacy" className="text-gray-400 hover:text-yellow-400 text-xs sm:text-sm">
                 Privacy Policy
               </SmartLink>
-              <SmartLink href="/terms" className="text-gray-400 hover:text-yellow-400 text-sm">
+              <SmartLink href="/terms" className="text-gray-400 hover:text-yellow-400 text-xs sm:text-sm">
                 Terms of Service
               </SmartLink>
             </div>

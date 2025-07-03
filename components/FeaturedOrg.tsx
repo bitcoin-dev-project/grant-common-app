@@ -24,8 +24,8 @@ export default function FeaturedOrg({ name, logo, description, accentColor }: Fe
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className={`h-2 ${accentColor}`}></div>
-      <div className="p-6">
-        <div className="w-20 h-20 mb-6 relative flex items-center justify-center bg-gray-50 rounded-md p-2">
+      <div className="p-4 sm:p-6">
+        <div className="w-16 h-16 sm:w-20 sm:h-20 mb-4 sm:mb-6 relative flex items-center justify-center bg-gray-50 rounded-md p-2">
           <Image 
             src={logo} 
             alt={`${name} logo`} 
@@ -35,9 +35,9 @@ export default function FeaturedOrg({ name, logo, description, accentColor }: Fe
         </div>
         
         <div className="mb-2 flex items-center">
-          <h3 className="text-xl font-bold text-gray-900">{name}</h3>
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900">{name}</h3>
           <svg 
-            className={`ml-2 w-5 h-5 transform transition-transform duration-300 ${isHovered ? 'translate-x-1 opacity-100' : 'opacity-0'}`} 
+            className={`ml-2 w-4 h-4 sm:w-5 sm:h-5 transform transition-transform duration-300 ${isHovered ? 'translate-x-1 opacity-100' : 'opacity-0'}`} 
             fill="none" 
             stroke="currentColor" 
             viewBox="0 0 24 24"
@@ -48,10 +48,10 @@ export default function FeaturedOrg({ name, logo, description, accentColor }: Fe
         
         <p className="text-gray-600 text-sm leading-relaxed">{description}</p>
         
-        <div className={`mt-6 pt-4 border-t border-gray-100 flex justify-between items-center transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
-          <span className="text-sm font-medium text-gray-500">Learn more</span>
-          <div className={`w-8 h-8 rounded-full ${accentColor} flex items-center justify-center`}>
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className={`mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-gray-100 flex justify-between items-center transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+          <span className="text-xs sm:text-sm font-medium text-gray-500">Learn more</span>
+          <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full ${accentColor} flex items-center justify-center`}>
+            <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </div>
