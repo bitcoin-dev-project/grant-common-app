@@ -397,48 +397,79 @@ export default function GrantApplicationForm() {
     }));
 
     // Simulate processing each organization one by one with better visual feedback
-    const simulateRealTimeProgress = async () => {
-      for (let i = 0; i < submittableOrgs.length; i++) {
-        const orgId = submittableOrgs[i];
-        const orgName = organizations[orgId]?.name || orgId;
+    const showProgressBasedOnRealTiming = async (organizationResults: any[]) => {
+      // Sort organizations by their actual completion time
+      const sortedResults = organizationResults
+        .slice()
+        .sort((a, b) => a.completedAt - b.completedAt);
+      
+      console.log('📊 Showing progress based on real completion times:', 
+        sortedResults.map(r => `${r.organizationName}: ${r.completedAt}ms`));
+      
+      // Show each organization completing in the order they actually finished
+      for (let i = 0; i < sortedResults.length; i++) {
+        const currentResult = sortedResults[i];
+        const nextResult = sortedResults[i + 1];
         
-        // Set current org as processing
+        // Calculate delay until this organization should be shown as completed
+        const elapsedSinceSubmission = Date.now() - submissionStartTime;
+        const delayUntilCompletion = Math.max(100, currentResult.completedAt - elapsedSinceSubmission);
+        
+        // Wait until it's time to show this completion
+        if (delayUntilCompletion > 0) {
+          await new Promise(resolve => setTimeout(resolve, delayUntilCompletion));
+        }
+        
+        // Show this organization as processing first
         setSubmissionProgress(prev => ({
           ...prev,
           currentOrgIndex: i,
-          message: `Processing ${orgName}...`,
-          organizations: prev.organizations.map((org, index) => ({
-            ...org,
-            status: index === i ? 'processing' : index < i ? org.status : 'pending'
-          }))
+          message: `Processing ${currentResult.organizationName}...`,
+          organizations: prev.organizations.map(org => {
+            if (org.id === currentResult.organizationId) {
+              return { ...org, status: 'processing' as const };
+            }
+            return org;
+          })
         }));
         
-        // Simulate processing time (3-5 seconds per org for visual feedback)
-        await new Promise(resolve => setTimeout(resolve, 3000 + Math.random() * 2000));
+        // Brief pause to show processing state
+        await new Promise(resolve => setTimeout(resolve, 500));
         
-        // We'll update with real results later, for now just mark as processing complete
+        // Show it as completed with real result
         setSubmissionProgress(prev => ({
           ...prev,
-          organizations: prev.organizations.map((org, index) => ({
-            ...org,
-            status: index === i ? 'success' : org.status, // Temporarily mark as success
-            message: index === i ? 'Processing complete' : org.message
-          }))
+          organizations: prev.organizations.map(org => {
+            if (org.id === currentResult.organizationId) {
+              return {
+                ...org,
+                status: currentResult.success ? 'success' as const : 'error' as const,
+                message: currentResult.message || (currentResult.success ? 'Submitted successfully' : 'Submission failed')
+              };
+            }
+            return org;
+          })
         }));
         
-        // Short pause to show the result before moving to next
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // If there's a next organization, calculate pause between completions
+        if (nextResult) {
+          const pauseBetween = Math.max(800, nextResult.completedAt - currentResult.completedAt);
+          await new Promise(resolve => setTimeout(resolve, Math.min(pauseBetween, 2000))); // Cap at 2 seconds
+        } else {
+          // Last organization - brief pause before completion
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
       }
       
       setSubmissionProgress(prev => ({
         ...prev,
         phase: 'completed',
-        message: 'All organizations processed! Getting final results...'
+        message: 'All submissions processed!'
       }));
     };
 
-    // Start the visual progress (just show processing state)
-    const progressSimulation = simulateRealTimeProgress();
+    // Track submission start time for real timing calculations
+    const submissionStartTime = Date.now();
 
     try {
       // Actual form submission logic (unchanged)
@@ -481,27 +512,22 @@ export default function GrantApplicationForm() {
         }
       });
       
-      // Wait for progress simulation to complete
-      await progressSimulation;
-      
       console.log('API response:', response.data);
       
-      // Update progress with real results from backend
-      if (response.data.submissionSummary) {
+      // Show progress based on real completion timing
+      if (response.data.submissionSummary?.organizationResults) {
+        await showProgressBasedOnRealTiming(response.data.submissionSummary.organizationResults);
+      } else {
+        // Fallback if no timing data available
         setSubmissionProgress(prev => ({
           ...prev,
           phase: 'completed',
           message: 'Processing complete!',
-          organizations: prev.organizations.map(org => {
-            const realResult = response.data.submissionSummary.organizationResults.find(
-              (result: any) => result.organizationId === org.id
-            );
-            return {
-              ...org,
-              status: realResult ? (realResult.success ? 'success' : 'error') : 'error',
-              message: realResult ? realResult.message : 'No response received'
-            };
-          })
+          organizations: prev.organizations.map(org => ({
+            ...org,
+            status: 'success',
+            message: 'Completed'
+          }))
         }));
       }
       

@@ -171,18 +171,21 @@ export async function POST(request: Request) {
       );
     }
 
-    // Process the submission for each organization sequentially with real-time updates
-    const results: Record<string, SubmissionResponse> = {};
+    // Process all organizations in parallel for better performance
+    const results: Record<string, SubmissionResponse & { duration: number; completedAt: number }> = {};
     let overallSuccess = true;
     
-    // Process each organization one by one so users can see real-time progress
-    for (let i = 0; i < validOrgs.length; i++) {
-      const orgId = validOrgs[i];
+    console.log(`🚀 Starting parallel submission to ${validOrgs.length} organizations...`);
+    const globalStartTime = Date.now();
+    
+    // Create submission promises for all organizations
+    const submissionPromises = validOrgs.map(async (orgId, index) => {
       const org = organizations[orgId as string];
+      const startTime = Date.now();
+      
+      console.log(`🎯 Starting submission ${index + 1}/${validOrgs.length}: ${org.name} (${org.workflowType})`);
       
       try {
-        console.log(`🎯 Processing submission ${i + 1}/${validOrgs.length}: ${org.name} (${org.workflowType})`);
-        
         const applicationWithFlag = {
           ...application,
           // Never send confirmation email during individual org submissions
@@ -198,13 +201,12 @@ export async function POST(request: Request) {
         
         const submissionPromise = SubmissionService.submitToOrganization(applicationWithFlag, org);
         
-        console.log(`⏱️  Starting submission to ${org.name}...`);
-        const startTime = Date.now();
-        
         const response = await Promise.race([submissionPromise, timeoutPromise]);
         
         const duration = Date.now() - startTime;
-        console.log(`✅ Submission to ${org.name} completed in ${duration}ms: ${response.success ? 'SUCCESS' : 'FAILED'}`);
+        const completedAt = Date.now() - globalStartTime; // Time since all submissions started
+        
+        console.log(`✅ Submission to ${org.name} completed in ${duration}ms (${completedAt}ms from start): ${response.success ? 'SUCCESS' : 'FAILED'}`);
         
         if (!response.success) {
           console.error(`❌ Submission failed for ${org.name}: ${response.message}`);
@@ -213,12 +215,18 @@ export async function POST(request: Request) {
           }
         }
         
-        results[orgId] = response;
-        
-        if (!response.success) {
-          overallSuccess = false;
-        }
+        return {
+          orgId,
+          result: {
+            ...response,
+            duration,
+            completedAt
+          }
+        };
       } catch (error) {
+        const duration = Date.now() - startTime;
+        const completedAt = Date.now() - globalStartTime;
+        
         console.error(`❌ Error processing ${orgId} submission:`, error);
         
         // Log more specific error details
@@ -230,14 +238,51 @@ export async function POST(request: Request) {
           }
         }
         
+        return {
+          orgId,
+          result: {
+            success: false,
+            message: `Failed to process submission for ${org.name}`,
+            error: (error as Error)?.message || 'Unknown error',
+            duration,
+            completedAt
+          }
+        };
+      }
+    });
+    
+    // Wait for all submissions to complete
+    const submissionResults = await Promise.allSettled(submissionPromises);
+    
+    // Process results
+    submissionResults.forEach((result, index) => {
+      if (result.status === 'fulfilled') {
+        const { orgId, result: orgResult } = result.value;
+        results[orgId] = orgResult;
+        
+        if (!orgResult.success) {
+          overallSuccess = false;
+        }
+      } else {
+        // This should rarely happen since we handle errors inside the promise
+        const orgId = validOrgs[index];
+        const org = organizations[orgId as string];
+        
+        console.error(`❌ Promise rejected for ${org.name}:`, result.reason);
+        
         results[orgId] = {
           success: false,
-          message: `Failed to process submission for ${org.name}`,
-          error: (error as Error)?.message || 'Unknown error'
+          message: `Promise rejection: ${org.name}`,
+          error: result.reason?.message || 'Promise rejected',
+          duration: 30000, // Assume timeout
+          completedAt: Date.now() - globalStartTime
         };
         overallSuccess = false;
       }
-    }
+    });
+    
+    const totalDuration = Date.now() - globalStartTime;
+    console.log(`🏁 All ${validOrgs.length} submissions completed in ${totalDuration}ms (parallel processing)`)
 
     if (Object.keys(results).length === 0) {
       return NextResponse.json(
@@ -320,7 +365,9 @@ export async function POST(request: Request) {
           organizationName: organizations[orgId as string]?.name || orgId,
           success: result.success,
           message: result.message,
-          error: result.error || null
+          error: result.error || null,
+          duration: result.duration,
+          completedAt: result.completedAt
         }))
       }
     });
