@@ -120,27 +120,36 @@ export default function Hero() {
             className="mt-12 sm:mt-16 flex justify-center px-4 sm:px-0"
           >
             <div className="bg-gray-800/70 backdrop-blur-sm rounded-full px-4 sm:px-6 py-2 sm:py-3 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 shadow-inner border border-gray-700/50 max-w-full">
-              <div className="flex items-center flex-wrap justify-center gap-2 sm:gap-3">
+              <div className="flex items-center flex-wrap justify-center gap-2 sm:gap-3 lg:gap-4">
                 <div className="flex items-center">
                   <svg className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500 mr-1 sm:mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="currentColor" fillOpacity="0.2" stroke="currentColor" strokeWidth="1.5" />
                     <path d="M8 12L11 15L16 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  <span className="text-white text-xs sm:text-sm">Easy</span>
+                  <span className="text-white text-xs sm:text-sm lg:text-base">
+                    <span className="sm:hidden">Easy</span>
+                    <span className="hidden sm:inline">Easy Application</span>
+                  </span>
                 </div>
                 <span className="hidden sm:block h-4 w-[1px] bg-gray-700"></span>
                 <div className="flex items-center">
                   <svg className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
-                  <span className="text-white text-xs sm:text-sm">5 Orgs</span>
+                  <span className="text-white text-xs sm:text-sm lg:text-base">
+                    <span className="sm:hidden">5 Orgs</span>
+                    <span className="hidden sm:inline">5 Organizations</span>
+                  </span>
                 </div>
                 <span className="hidden sm:block h-4 w-[1px] bg-gray-700"></span>
                 <div className="flex items-center">
                   <svg className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span className="text-white text-xs sm:text-sm">Fast</span>
+                  <span className="text-white text-xs sm:text-sm lg:text-base">
+                    <span className="sm:hidden">Fast</span>
+                    <span className="hidden sm:inline">Save Time</span>
+                  </span>
                 </div>
               </div>
             </div>

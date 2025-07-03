@@ -114,6 +114,7 @@ export default function GrantApplicationForm() {
     handleSubmit,
     watch,
     trigger,
+    setValue,
     formState: { errors },
     reset
   } = useForm<FormData>({
@@ -602,103 +603,159 @@ export default function GrantApplicationForm() {
   const OrganizationSelector = () => {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 gap-5">
+        <div className="mb-6">
+          <p className="text-gray-600 text-sm leading-relaxed">
+            Select one or more organizations to apply to. Each organization has its own focus areas and requirements.
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
           {activeOrgs.map(org => {
             const isWorkflowReady = org.workflowImplemented === true;
+            const isSelected = selectedOrgs.includes(org.id);
             
             return (
               <div 
                 key={org.id} 
-                className={`relative rounded-lg border-2 transition-all duration-200 overflow-hidden ${
-                  selectedOrgs.includes(org.id) 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : !isWorkflowReady
-                      ? 'border-gray-200 bg-gray-50 opacity-90'
-                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                className={`relative group cursor-pointer transition-all duration-200 ${
+                  !isWorkflowReady ? 'cursor-not-allowed opacity-60' : ''
                 }`}
+                                 onClick={() => {
+                   if (!isWorkflowReady) return;
+                   
+                   const currentOrgs = watch('organizations') || [];
+                   const updatedOrgs = isSelected 
+                     ? currentOrgs.filter((id: string) => id !== org.id)
+                     : [...currentOrgs, org.id];
+                   
+                   // Update the form using setValue
+                   setValue('organizations', updatedOrgs);
+                   trigger('organizations'); // Trigger validation
+                 }}
               >
-                <label 
-                  className="flex cursor-pointer"
-                  onClick={(_) => {
-                    if (!isWorkflowReady) {
-                      _.preventDefault();
-                    }
-                  }}
-                >
-                  {org.logo && (
-                    <div className="w-24 h-24 sm:w-32 sm:h-32 flex items-center justify-center p-4 bg-white">
-                      <div className="relative w-full h-full">
-                        <Image
-                          src={org.logo}
-                          alt={`${org.name} logo`}
-                          fill
-                          style={{ objectFit: 'contain' }}
-                        />
-                      </div>
-                    </div>
-                  )}
+                {/* Hidden input for form validation */}
+                <input 
+                  type="checkbox" 
+                  value={org.id}
+                  disabled={!isWorkflowReady}
+                  {...register('organizations', { 
+                    required: "Please select at least one organization",
+                    validate: (value) => value.length > 0 || "Please select at least one organization"
+                  })}
+                  className="sr-only"
+                />
+                
+                                 {/* Card Design */}
+                 <div 
+                   className={`relative bg-white rounded-lg border transition-all duration-200 overflow-hidden ${
+                     isSelected 
+                       ? 'border-blue-400 bg-blue-50/30' 
+                       : 'border-gray-200 hover:border-blue-200 hover:bg-gray-50/50'
+                   } ${!isWorkflowReady ? 'bg-gray-50 border-gray-100' : ''}`}
+                 >
+                                     {/* Selection Indicator */}
+                   {isSelected && (
+                     <div className="absolute top-2 right-2 z-10 bg-blue-500 text-white rounded-full p-1 shadow-sm">
+                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                       </svg>
+                     </div>
+                   )}
+                   
+                   {/* Coming Soon Badge */}
+                   {!isWorkflowReady && (
+                     <div className="absolute top-2 right-2 z-10 bg-gray-400 text-white text-xs px-2 py-1 rounded-md">
+                       Coming Soon
+                     </div>
+                   )}
                   
-                  <div className="flex-grow p-5">
-                    <div className="flex justify-between items-center mb-3">
-                      <div className="flex items-center">
-                        <input 
-                          type="checkbox" 
-                          value={org.id}
-                          disabled={!isWorkflowReady}
-                          {...register('organizations', { 
-                            required: "Please select at least one organization",
-                            validate: (value) => value.length > 0 || "Please select at least one organization"
-                          })}
-                          className={`h-5 w-5 rounded border-gray-300 mr-3 focus:ring-blue-500 ${
-                            !isWorkflowReady ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600'
-                          }`}
-                        />
-                        <span className="font-semibold text-lg text-gray-900">{org.name}</span>
-                      </div>
-                      
-                      {!isWorkflowReady && (
-                        <span className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded-full ml-2">
-                          Coming Soon
-                        </span>
+                                     {/* Organization Logo */}
+                   <div className="flex justify-center pt-5 pb-3">
+                     {org.logo && (
+                       <div className="w-16 h-16 relative flex items-center justify-center bg-gray-50/70 rounded-md p-2">
+                         <Image
+                           src={org.logo}
+                           alt={`${org.name} logo`}
+                           fill
+                           style={{ objectFit: 'contain' }}
+                           className="p-1"
+                         />
+                       </div>
+                     )}
+                   </div>
+                  
+                  {/* Organization Info */}
+                  <div className="px-6 pb-6">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">{org.name}</h3>
+                    <p className="text-gray-600 text-sm leading-relaxed mb-4 min-h-[3rem]">{org.description}</p>
+                    
+                    {/* Action Button */}
+                    <div className="flex items-center justify-between">
+                      {isWorkflowReady && org.website && (
+                        <a 
+                          href={org.website} 
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:text-blue-800 inline-flex items-center transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Learn more
+                          <svg className="inline-block h-3 w-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                          </svg>
+                        </a>
                       )}
+                      
+                                             <div className={`px-2 py-1 rounded text-xs transition-colors ${
+                         isSelected 
+                           ? 'bg-blue-100 text-blue-700 font-medium' 
+                           : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200'
+                       }`}>
+                         {isSelected ? 'Selected' : 'Click to select'}
+                       </div>
                     </div>
-                    
-                    <p className="text-gray-600 mb-3">{org.description}</p>
-                    
-                    {isWorkflowReady && org.website && (
-                      <a 
-                        href={org.website} 
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:text-blue-800 inline-flex items-center"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Visit website
-                        <svg className="inline-block h-3 w-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                        </svg>
-                      </a>
-                    )}
                   </div>
-                </label>
+                  
+                </div>
               </div>
             );
           })}
         </div>
         
         {errors.organizations && (
-          <div className="mt-2 flex items-start text-red-600">
-            <svg className="h-5 w-5 flex-shrink-0 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+          <div className="mt-4 flex items-start text-red-600 bg-red-50 p-3 rounded-md">
+            <svg className="h-5 w-5 flex-shrink-0 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clipRule="evenodd" />
             </svg>
-            <p className="text-sm">{typeof errors.organizations.message === 'string' ? errors.organizations.message : "Please select at least one organization"}</p>
+            <p className="text-sm font-medium">{typeof errors.organizations.message === 'string' ? errors.organizations.message : "Please select at least one organization"}</p>
+          </div>
+        )}
+        
+        {selectedOrgs.length > 0 && (
+          <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <h4 className="font-semibold text-blue-900 mb-2">Selected Organizations ({selectedOrgs.length})</h4>
+            <div className="flex flex-wrap gap-2">
+              {selectedOrgs.map((orgId: string) => {
+                const org = organizations[orgId];
+                return org ? (
+                  <span key={orgId} className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
+                    {org.name}
+                  </span>
+                ) : null;
+              })}
+            </div>
+            <p className="text-xs text-blue-700 mt-2">
+              Your application will be sent to all selected organizations.
+            </p>
           </div>
         )}
         
         {selectedOrgs.some((orgId: string) => organizations[orgId]?.workflowImplemented === false) && (
-          <p className="mt-3 text-xs text-gray-500 italic">
-            Note: Organizations marked with &quot;Coming Soon&quot; are coming soon and will not receive your application yet.
-          </p>
+          <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
+            <p className="text-sm text-amber-800">
+              <span className="font-medium">Note:</span> Organizations marked with "Coming Soon" are still being integrated and will not receive your application yet.
+            </p>
+          </div>
         )}
       </div>
     );

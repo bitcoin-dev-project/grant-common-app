@@ -7,9 +7,15 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Bitcoin Grants Common Application',
-  description: 'A unified platform for applying to Bitcoin-related grants across multiple organizations.',
+  description: 'A unified platform for applying to Bitcoin-related grants across multiple organizations. Apply once, reach multiple Bitcoin funding organizations.',
   icons: {
-    icon: withAssetPrefix('/favicon.ico'),
+    icon: [
+      { url: withAssetPrefix('/favicon.ico'), sizes: '32x32', type: 'image/x-icon' },
+      { url: withAssetPrefix('/favicon.svg'), type: 'image/svg+xml' },
+    ],
+    apple: [
+      { url: withAssetPrefix('/apple-touch-icon.png'), sizes: '180x180', type: 'image/png' },
+    ],
   },
   keywords: ['Bitcoin', 'grants', 'funding', 'cryptocurrency', 'open source', 'OpenSats', 'Brink', 'Btrust', 'Maelstrom', 'Spiral'],
   authors: [{ name: 'Bitcoin Grants Common Application' }],
@@ -18,14 +24,28 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://bitcoingrants.org',
     title: 'Bitcoin Grants Common Application',
-    description: 'One application. Multiple organizations. Apply for Bitcoin funding with ease.',
+    description: 'Apply once, reach multiple Bitcoin funding organizations. Submit your project for consideration and accelerate your path to funding.',
     siteName: 'Bitcoin Grants Common Application',
+    images: [
+      {
+        url: withAssetPrefix('/og-image.png'),
+        width: 1200,
+        height: 630,
+        alt: 'Bitcoin Grants Common Application - Apply once, reach multiple organizations',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Bitcoin Grants Common Application',
-    description: 'One application. Multiple organizations. Apply for Bitcoin funding with ease.',
-  }
+    description: 'Apply once, reach multiple Bitcoin funding organizations. Submit your project for consideration and accelerate your path to funding.',
+    images: [withAssetPrefix('/og-image.png')],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  metadataBase: new URL('https://bitcoingrants.org'),
 }
 
 export default function RootLayout({
