@@ -753,7 +753,7 @@ export default function GrantApplicationForm() {
         {selectedOrgs.some((orgId: string) => organizations[orgId]?.workflowImplemented === false) && (
           <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
             <p className="text-sm text-amber-800">
-              <span className="font-medium">Note:</span> Organizations marked with "Coming Soon" are still being integrated and will not receive your application yet.
+              <span className="font-medium">Note:</span> Organizations marked with &quot;Coming Soon&quot; are still being integrated and will not receive your application yet.
             </p>
           </div>
         )}
