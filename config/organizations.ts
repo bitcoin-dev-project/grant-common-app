@@ -87,7 +87,7 @@ const organizations: Record<string, Organization> = {
     name: 'Btrust',
     description: 'Btrust is a Bitcoin-focused trust dedicated to funding Bitcoin development and education throughout Africa and beyond.',
     website: 'https://btrust.tech',
-    logo: '/logos/btrust.jpg',
+    logo: '/logos/btrust.png',
     active: true,
     workflowImplemented: true,
     workflowType: 'email',

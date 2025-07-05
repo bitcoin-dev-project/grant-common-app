@@ -20,7 +20,7 @@ export default function Home() {
     },
     {
       name: "Btrust",
-      logo: withAssetPrefix("/logos/btrust.jpg"),
+      logo: withAssetPrefix("/logos/btrust.png"),
       description: "Advancing Bitcoin development throughout Africa and beyond, focusing on self-sovereignty.",
       accentColor: "bg-blue-600",
     },
