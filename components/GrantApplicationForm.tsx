@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import ReCAPTCHA from 'react-google-recaptcha'
 import axios from 'axios'
 import organizations from '../config/organizations'
-import { formSections, getFieldsForSection, getRequiredFieldsBySection } from '../config/fieldDefinitions'
+import { formSections, getFieldsForSection, getRequiredFieldsBySection, allFields, FieldDefinition } from '../config/fieldDefinitions'
 import SmartLink from './SmartLink'
 import Image from 'next/image'
 import FormInput from './FormInput'
@@ -1020,7 +1020,43 @@ export default function GrantApplicationForm() {
     }
   }, [isClient]);
 
-
+  // Function to check if current step is valid for navigation
+  const isCurrentStepValid = () => {
+    const formData = watch();
+    
+    // For the first step, check if at least one organization is selected
+    if (currentStep === 0) {
+      return selectedOrgs.length > 0;
+    }
+    
+    // For other steps, check if all required fields in the current section are filled
+    const currentSection = visibleSections[currentStep];
+    const sectionIndex = formSections.findIndex(s => s.id === currentSection.id);
+    const currentRequiredFields = requiredFieldsBySection[sectionIndex] || [];
+    
+    return currentRequiredFields.every(fieldId => {
+      const value = formData[fieldId];
+      if (fieldId === 'organizations') {
+        return selectedOrgs.length > 0;
+      }
+      
+      // Get the field definition to check if it's a file input
+      const fieldDef = allFields.find((field: FieldDefinition) => field.id === fieldId);
+      
+      // Special handling for file inputs
+      if (fieldDef && fieldDef.type === 'file') {
+        // File inputs can be FileList, null, undefined, or empty
+        if (value instanceof FileList) {
+          return value.length > 0;
+        }
+        // If it's not a FileList, it's likely null/undefined (no file selected)
+        return false;
+      }
+      
+      // For regular inputs, check if they have a value
+      return value !== undefined && value !== null && value !== '';
+    });
+  };
 
   // Navigation Buttons
   const renderNavigationButtons = () => {
@@ -1070,7 +1106,12 @@ export default function GrantApplicationForm() {
                 <button
                   type="button"
                   onClick={goToNextStep}
-                  className="w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center text-sm min-h-[44px]"
+                  disabled={!isCurrentStepValid()}
+                  className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center text-sm min-h-[44px] ${
+                    isCurrentStepValid()
+                      ? 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
                 >
                   Next Step
                   <svg className="h-4 w-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1211,7 +1252,12 @@ export default function GrantApplicationForm() {
               <button
                 type="button"
                 onClick={goToNextStep}
-                className="py-3 px-6 rounded-lg font-medium transition-all duration-200 bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md flex items-center justify-center min-h-[44px]"
+                disabled={!isCurrentStepValid()}
+                className={`py-3 px-6 rounded-lg font-medium transition-all duration-200 flex items-center justify-center min-h-[44px] ${
+                  isCurrentStepValid()
+                    ? 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md cursor-pointer'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
               >
                 Next Step
                 <svg className="h-5 w-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
