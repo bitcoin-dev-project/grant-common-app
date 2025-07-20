@@ -100,12 +100,14 @@ If emails are not being delivered:
 
 ### Team Email Copy Configuration
 
-The application automatically sends a copy of each grant application to your team for quality assurance and support purposes:
+The application automatically sends **ONE** copy of each grant application to your team for quality assurance and support purposes:
 
 1. Set the `BDP_TEAM_EMAIL` environment variable to your team's email address
 2. Users will be notified during the application process that a copy will be sent to your team
 3. If `BDP_TEAM_EMAIL` is not configured, only organization recipients will receive the application
-4. The team email copy is sent to the same recipients as the organization email (both receive the same message)
+4. **Important**: Only ONE team email is sent per application, regardless of how many organizations the user applies to
+5. The team email includes a summary of which organizations the application was submitted to
+6. The email subject line will show: `[TEAM COPY] New Grant Application - Applied to [Organization Names]`
 
 ### Network Errors
 
