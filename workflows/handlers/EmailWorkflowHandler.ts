@@ -693,9 +693,20 @@ export class EmailWorkflowHandler implements WorkflowHandler {
       
       // If this is NOT a confirmation-only request, send to organization
       if (!isSendingConfirmation || org.id !== 'confirmation') {
-        // Send application details to organization recipients
+        // Prepare recipients list - include org recipients and team email
+        const organizationRecipients = org.workflowConfig?.emailRecipients || [];
+        const teamEmail = process.env.BDP_TEAM_EMAIL;
+        
+        // Add team email to recipients if configured and not already included
+        const allRecipients = [...organizationRecipients];
+        if (teamEmail && !allRecipients.includes(teamEmail)) {
+          allRecipients.push(teamEmail);
+          console.log(`📧 Adding team email to recipients: ${teamEmail}`);
+        }
+        
+        // Send application details to organization recipients and team
         const orgMsg = {
-          to: org.workflowConfig?.emailRecipients,
+          to: allRecipients,
           from: verifiedSender,
           subject: org.workflowConfig?.emailSubject || `New Grant Application for ${org.name}`,
           html: htmlBody,
@@ -711,7 +722,10 @@ export class EmailWorkflowHandler implements WorkflowHandler {
         console.log(`   HTML Body Length: ${htmlBody.length.toLocaleString()} characters`);
         console.log(`   Attachments: ${attachments.length} files (${(totalAttachmentSize / 1024 / 1024).toFixed(2)}MB)`);
         console.log(`   Total Email Size: ${emailSizeMB}MB`);
-        console.log(`   Recipients: ${org.workflowConfig?.emailRecipients?.join(', ')}`);
+        console.log(`   Recipients: ${allRecipients.join(', ')}`);
+        if (teamEmail) {
+          console.log(`   📧 Team copy enabled: ${teamEmail}`);
+        }
         
         // SendGrid has a 30MB limit, but we'll warn at 20MB and fail at 25MB for safety
         if (emailSize > 25 * 1024 * 1024) {
@@ -721,9 +735,9 @@ export class EmailWorkflowHandler implements WorkflowHandler {
         }
 
         try {
-          console.log(`📤 Sending application email to ${org.name}...`);
+          console.log(`📤 Sending application email to ${org.name}${teamEmail ? ' and team' : ''}...`);
           await sgMail.send(orgMsg);
-          console.log(`✅ Application details sent successfully to ${org.name} recipients`);
+          console.log(`✅ Application details sent successfully to ${org.name} recipients${teamEmail ? ' and team' : ''}`);
         } catch (emailError) {
           console.error(`❌ Failed to send application email to ${org.name}:`);
           console.error(`   Error:`, emailError);
@@ -1016,7 +1030,7 @@ export class EmailWorkflowHandler implements WorkflowHandler {
       
       return {
         success: true,
-        message: `Application submitted successfully to ${org.name} (Email via SendGrid)`,
+        message: `Application submitted successfully to ${org.name}${process.env.BDP_TEAM_EMAIL ? ' and team copy sent' : ''} (Email via SendGrid)`,
         data: {}
       };
     } catch (error) {

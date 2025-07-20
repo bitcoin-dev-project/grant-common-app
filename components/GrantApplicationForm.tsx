@@ -1072,6 +1072,24 @@ export default function GrantApplicationForm() {
                 By completing the verification below, you confirm that you have reviewed your application and are ready to submit it.
               </p>
             </div>
+            
+            {/* Privacy Notice about Copy to Team */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-lg">
+              <div className="flex items-start space-x-3">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-blue-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </div>
+                <div className="text-left">
+                  <h4 className="text-sm font-medium text-blue-900 mb-1">Application Copy Notice</h4>
+                  <p className="text-xs text-blue-800 leading-relaxed">
+                    For quality assurance and support purposes, a copy of your application will also be sent to our team. 
+                    This helps us improve the application process and provide better assistance if needed.
+                  </p>
+                </div>
+              </div>
+            </div>
             <ReCAPTCHA
               ref={recaptchaRef}
               sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""}

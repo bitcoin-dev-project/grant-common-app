@@ -21,6 +21,11 @@ OPENSATS_API_KEY=development-test-key
 
 # SendGrid Email Configuration
 SENDGRID_API_URL=https://grant-website-wine.vercel.app/api/sendgrid
+SENDGRID_API_KEY=your_sendgrid_api_key_here
+SENDGRID_VERIFIED_SENDER=noreply@yourdomain.com
+
+# Team Email Configuration (Optional)
+BDP_TEAM_EMAIL=team@yourdomain.com
 ```
 
 Make sure that both API endpoints are correctly configured and accessible in the OpenSats clone.
@@ -92,6 +97,15 @@ If emails are not being delivered:
 1. Verify that the OpenSats clone's SendGrid integration is working correctly
 2. Check the logs in the OpenSats clone for any errors related to SendGrid
 3. Make sure the `SENDGRID_API_URL` is pointing to the correct endpoint
+
+### Team Email Copy Configuration
+
+The application automatically sends a copy of each grant application to your team for quality assurance and support purposes:
+
+1. Set the `BDP_TEAM_EMAIL` environment variable to your team's email address
+2. Users will be notified during the application process that a copy will be sent to your team
+3. If `BDP_TEAM_EMAIL` is not configured, only organization recipients will receive the application
+4. The team email copy is sent to the same recipients as the organization email (both receive the same message)
 
 ### Network Errors
 
