@@ -95,9 +95,12 @@ export class GoogleFormWorkflowHandler implements WorkflowHandler {
 
       console.log(`${org.name} Google Form response status:`, axiosResponse.status);
       
+      // Send copy to team if configured
+      await this.sendTeamCopy(relevantApplication, org);
+      
       return {
         success: true,
-        message: `Application submitted successfully to ${org.name} (Google Form)`,
+        message: `Application submitted successfully to ${org.name} (Google Form)${process.env.BDP_TEAM_EMAIL ? ' and team copy sent' : ''}`,
         data: {}
       };
     } catch (error: unknown) {
@@ -122,6 +125,49 @@ export class GoogleFormWorkflowHandler implements WorkflowHandler {
         message: `Failed to submit application to ${org.name} (Google Form)`,
         error: err?.response?.data || err.message
       };
+    }
+  }
+
+  /**
+   * Sends a copy of the application to the team email if configured
+   * @param application The mapped application data
+   * @param org The organization configuration
+   */
+  private async sendTeamCopy(
+    application: Record<string, unknown>,
+    org: Organization
+  ): Promise<void> {
+    const teamEmail = process.env.BDP_TEAM_EMAIL;
+    
+    if (!teamEmail) {
+      return; // Team email not configured
+    }
+
+    try {
+      // Use EmailWorkflowHandler to send the team copy
+      const { EmailWorkflowHandler } = await import('./EmailWorkflowHandler');
+      const emailHandler = new EmailWorkflowHandler();
+      
+      // Create a temporary organization config for team email
+      const teamOrg = {
+        ...org,
+        id: `${org.id}-team-copy`,
+        name: `${org.name} (Team Copy)`,
+        workflowConfig: {
+          emailRecipients: [teamEmail],
+          emailSubject: `[TEAM COPY] New Grant Application for ${org.name}`
+        }
+      };
+      
+      console.log(`📧 Sending team copy for ${org.name} Google Form submission to: ${teamEmail}`);
+      
+      // Send team copy using EmailWorkflowHandler
+      await emailHandler.submit(application, teamOrg);
+      
+      console.log(`✅ Team copy sent successfully for ${org.name} Google Form submission`);
+    } catch (error) {
+      // Log error but don't fail the whole submission
+      console.error(`❌ Error sending team copy for ${org.name} Google Form submission:`, error);
     }
   }
 } 
