@@ -245,6 +245,7 @@ export class EmailWorkflowHandler implements WorkflowHandler {
       
       // Organize application data by section
       const sections: Record<string, Array<{key: string, label: string, value: string}>> = {
+        'Application Summary': [],
         'Project Details': [],
         'Applicant Information': [],
         'References': [],
@@ -300,6 +301,24 @@ export class EmailWorkflowHandler implements WorkflowHandler {
         'grant_purpose',
         'why_considered'
       ];
+      
+      // Add organizations information to Application Summary section
+      const appliedOrganizations = application.organizations as string[];
+      if (appliedOrganizations && appliedOrganizations.length > 0) {
+        // Import organizations config to get organization names
+        const organizations = (await import('../../config/organizations')).default;
+        
+        // Format the organizations list
+        const orgNames = appliedOrganizations
+          .map(orgId => organizations[orgId]?.name || orgId)
+          .join('<br/>• ');
+        
+        sections['Application Summary'].push({
+          key: 'applied_organizations',
+          label: 'Organizations Applied To',
+          value: `• ${orgNames}`
+        });
+      }
       
       // Process each field into a section
       for (const [key, value] of Object.entries(application)) {
