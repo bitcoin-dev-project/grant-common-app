@@ -2,6 +2,7 @@ import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { withAssetPrefix } from '../lib/utils'
+import EnvironmentBanner from '../components/EnvironmentBanner'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -56,6 +57,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full scroll-smooth">
       <body className={`h-full antialiased ${inter.className}`}>
+        <EnvironmentBanner />
         {children}
       </body>
     </html>
