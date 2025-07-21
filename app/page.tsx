@@ -11,6 +11,24 @@ import { withAssetPrefix } from '../lib/utils'
 import organizationsConfig from '../config/organizations'
 
 export default function Home() {
+  // Map organization data with display properties
+  const accentColors: Record<string, string> = {
+    opensats: "bg-orange-500",
+    btrust: "bg-blue-600",
+    brink: "bg-purple-600",
+    maelstrom: "bg-blue-600",
+    spiral: "bg-yellow-600"
+  };
+
+  const organizations = Object.values(organizationsConfig)
+    .filter(org => org.active)
+    .map(org => ({
+      name: org.name,
+      logo: withAssetPrefix(org.logo || ''),
+      description: org.description,
+      accentColor: accentColors[org.id] || "bg-gray-600",
+      url: org.website
+    }));
 
   const processSteps = [
     {
