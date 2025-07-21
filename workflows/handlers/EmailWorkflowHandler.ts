@@ -691,13 +691,20 @@ export class EmailWorkflowHandler implements WorkflowHandler {
       // Check if this is a confirmation-only request
       const isSendingConfirmation = application.isSendingConfirmation as boolean;
       
+      // Extract applicant name for subject line
+      const applicantName = (application.your_name as string) || (application.name as string) || 'Applicant';
+      
       // If this is NOT a confirmation-only request, send to organization
       if (!isSendingConfirmation || org.id !== 'confirmation') {
+        // Construct subject line with applicant name at the beginning
+        const baseSubject = org.workflowConfig?.emailSubject || `New Grant Application for ${org.name}`;
+        const subjectWithName = `${applicantName} - ${baseSubject}`;
+        
         // Send application details to organization recipients
         const orgMsg = {
           to: org.workflowConfig?.emailRecipients,
           from: verifiedSender,
-          subject: org.workflowConfig?.emailSubject || `New Grant Application for ${org.name}`,
+          subject: subjectWithName,
           html: htmlBody,
           attachments: attachments.length > 0 ? attachments : undefined,
         };
