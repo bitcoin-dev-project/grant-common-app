@@ -88,6 +88,7 @@ export default function Home() {
                 logo={org.logo} 
                 description={org.description} 
                 accentColor={org.accentColor}
+                url={org.url}
               />
             ))}
           </div>
@@ -99,6 +100,7 @@ export default function Home() {
                 logo={org.logo} 
                 description={org.description} 
                 accentColor={org.accentColor}
+                url={org.url}
               />
             ))}
           </div>
