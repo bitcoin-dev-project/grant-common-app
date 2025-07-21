@@ -4,6 +4,7 @@ export type Organization = {
   description: string;
   website: string;
   logo?: string;
+  accentColor?: string;
   apiUrl?: string;
   active: boolean;
   workflowImplemented?: boolean;
@@ -34,6 +35,7 @@ const organizations: Record<string, Organization> = {
     description: 'OpenSats is a nonprofit organization dedicated to supporting open-source Bitcoin and other free and open-source software projects.',
     website: 'https://opensats.org',
     logo: '/logos/opensats.png',
+    accentColor: 'bg-orange-500',
     // apiUrl: process.env.OPENSATS_API_URL || 'https://opensats.org/api/github',
     apiUrl: process.env.OPENSATS_API_URL,
     active: true,
@@ -59,6 +61,7 @@ const organizations: Record<string, Organization> = {
     description: 'Brink empowers Bitcoin developers and researchers through funding, education, and mentoring.',
     website: 'https://brink.dev',
     logo: '/logos/brink.png',
+    accentColor: 'bg-purple-600',
     active: true,
     workflowImplemented: true,
     workflowType: 'email',
@@ -88,6 +91,7 @@ const organizations: Record<string, Organization> = {
     description: 'Btrust is a Bitcoin-focused trust dedicated to funding Bitcoin development and education throughout Africa and beyond.',
     website: 'https://btrust.tech',
     logo: '/logos/btrust.png',
+    accentColor: 'bg-blue-600',
     active: true,
     workflowImplemented: true,
     workflowType: 'email',
@@ -122,6 +126,7 @@ const organizations: Record<string, Organization> = {
     description: 'Maelstrom supports Bitcoin developers working on tools and technologies that enhance Bitcoin\'s resilience, scalability, censorship resistance and privacy characteristics.',
     website: 'https://maelstrom.fund/bitcoin-grant-program/',
     logo: '/logos/maelstrom.png',
+    accentColor: 'bg-blue-600',
     active: true,
     workflowImplemented: true,
     workflowType: 'email',
@@ -149,6 +154,7 @@ const organizations: Record<string, Organization> = {
     description: 'Spiral is a team funded by Block that supports Bitcoin development through their FOSS Bitcoin Grants program.',
     website: 'https://spiral.xyz',
     logo: '/logos/spiral.svg',
+    accentColor: 'bg-yellow-600',
     active: true,
     workflowImplemented: true,
     workflowType: 'email',
