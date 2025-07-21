@@ -245,6 +245,7 @@ export class EmailWorkflowHandler implements WorkflowHandler {
       
       // Organize application data by section
       const sections: Record<string, Array<{key: string, label: string, value: string}>> = {
+        'Application Summary': [],
         'Project Details': [],
         'Applicant Information': [],
         'References': [],
@@ -300,6 +301,24 @@ export class EmailWorkflowHandler implements WorkflowHandler {
         'grant_purpose',
         'why_considered'
       ];
+      
+      // Add organizations information to Application Summary section
+      const appliedOrganizations = application.organizations as string[];
+      if (appliedOrganizations && appliedOrganizations.length > 0) {
+        // Import organizations config to get organization names
+        const organizations = (await import('../../config/organizations')).default;
+        
+        // Format the organizations list
+        const orgNames = appliedOrganizations
+          .map(orgId => organizations[orgId]?.name || orgId)
+          .join('<br/>• ');
+        
+        sections['Application Summary'].push({
+          key: 'applied_organizations',
+          label: 'Organizations Applied To',
+          value: `• ${orgNames}`
+        });
+      }
       
       // Process each field into a section
       for (const [key, value] of Object.entries(application)) {
@@ -691,13 +710,20 @@ export class EmailWorkflowHandler implements WorkflowHandler {
       // Check if this is a confirmation-only request
       const isSendingConfirmation = application.isSendingConfirmation as boolean;
       
+      // Extract applicant name for subject line
+      const applicantName = (application.your_name as string) || (application.name as string) || 'Applicant';
+      
       // If this is NOT a confirmation-only request, send to organization
       if (!isSendingConfirmation || org.id !== 'confirmation') {
+        // Construct subject line with applicant name at the beginning
+        const baseSubject = org.workflowConfig?.emailSubject || `New Grant Application for ${org.name}`;
+        const subjectWithName = `${applicantName} - ${baseSubject}`;
+        
         // Send application details to organization recipients
         const orgMsg = {
           to: org.workflowConfig?.emailRecipients,
           from: verifiedSender,
-          subject: org.workflowConfig?.emailSubject || `New Grant Application for ${org.name}`,
+          subject: subjectWithName,
           html: htmlBody,
           attachments: attachments.length > 0 ? attachments : undefined,
         };
