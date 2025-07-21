@@ -8,9 +8,10 @@ type FeaturedOrgProps = {
   logo: string
   description: string
   accentColor: string
+  url?: string
 }
 
-export default function FeaturedOrg({ name, logo, description, accentColor }: FeaturedOrgProps) {
+export default function FeaturedOrg({ name, logo, description, accentColor, url }: FeaturedOrgProps) {
   const [isHovered, setIsHovered] = useState(false)
   
   return (
