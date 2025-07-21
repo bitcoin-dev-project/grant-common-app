@@ -296,6 +296,56 @@ export async function POST(request: Request) {
     const totalCount = Object.keys(results).length;
     const failedCount = totalCount - successCount;
     
+    // Send team copy email (ONE email per application, regardless of number of organizations)
+    const teamEmail = process.env.BDP_TEAM_EMAIL;
+    if (teamEmail && successCount > 0) {
+      console.log(`📧 Sending team copy email to: ${teamEmail}`);
+      console.log(`   Application submitted to: ${successCount}/${totalCount} organizations`);
+      
+      try {
+        // Get list of successful organizations
+        const successfulOrgs = Object.entries(results)
+          .filter(([, result]) => result.success)
+          .map(([orgId]) => organizations[orgId]?.name || orgId);
+        
+        // Use the EmailWorkflowHandler to send team copy
+        const { EmailWorkflowHandler } = await import('../../../workflows/handlers/EmailWorkflowHandler');
+        const emailHandler = new EmailWorkflowHandler();
+        
+        // Create organization config for team email
+        const teamOrg = {
+          id: 'team-copy',
+          name: 'BDP Team Copy',
+          description: 'Team copy service',
+          website: '',
+          active: true,
+          workflowType: 'email' as const,
+          workflowConfig: {
+            emailRecipients: [teamEmail],
+            emailSubject: `[TEAM COPY] New Grant Application - Applied to ${successfulOrgs.join(', ')}`
+          }
+        };
+        
+        // Add metadata about the submission to the application
+        const teamApplication = {
+          ...application,
+          // Add submission summary info that will be visible in the email
+          submission_organizations: successfulOrgs.join(', '),
+          submission_count: `${successCount}/${totalCount}`,
+          submission_timestamp: new Date().toISOString(),
+          // Don't send confirmation flag - this is not a confirmation email
+          isSendingConfirmation: false
+        };
+        
+        // Send team copy using EmailWorkflowHandler
+        await emailHandler.submit(teamApplication, teamOrg);
+        console.log(`✅ Team copy email sent successfully`);
+      } catch (error) {
+        console.error(`❌ Failed to send team copy email:`, error);
+        // Don't fail the entire submission if team copy fails
+      }
+    }
+    
     // Send confirmation email after all submissions are complete
     const applicantEmail = application.email as string;
     if (applicantEmail && successCount > 0) {
