@@ -1,5 +1,7 @@
+import { COUNTRY_OPTIONS } from "./countries";
+
 // Field types supported in the application form
-export type FieldType = 
+export type FieldType =
   | 'text'
   | 'textarea'
   | 'email'
@@ -19,6 +21,10 @@ export interface FieldDefinition {
   options?: { value: string; label: string }[];
   organizations?: string[]; // Organizations that use this field
   section: string; // Form section this field belongs to
+  accept?: string; // file fields: allowed extensions, e.g. ".pdf,.doc,.docx"
+  maxSizeMB?: number; // file fields: max size in MB
+  validation?: 'url' | 'phone'; // text fields: format check
+  minWords?: number; // textarea: minimum word count
 }
 
 // Define the form sections
@@ -89,6 +95,7 @@ export const allFields: FieldDefinition[] = [
     description: "Provide a clear description of your project, including its purpose, deliverables, and timeline.",
     type: "textarea",
     required: true,
+    minWords: 10,
     placeholder: "Describe your project in detail, including its purpose, who it serves, what problem it solves, deliverables, and timeline.",
     organizations: ["opensats", "spiral", "brink", "btrust", "maelstrom"],
     section: "project"
@@ -146,6 +153,8 @@ export const allFields: FieldDefinition[] = [
     label: "Project GitHub",
     description: "Link to the project's GitHub repository or other code hosting platform.",
     type: "text",
+    validation: "url",
+    placeholder: "https://github.com/org/repo",
     organizations: ["opensats", "spiral"],
     section: "source"
   },
@@ -240,6 +249,7 @@ export const allFields: FieldDefinition[] = [
     label: "GitHub",
     type: "text",
     required: true,
+    validation: "url",
     placeholder: "https://github.com/username",
     organizations: ["brink", "maelstrom", "spiral", "btrust"],
     section: "applicant"
@@ -249,6 +259,7 @@ export const allFields: FieldDefinition[] = [
     id: "personal_website",
     label: "Personal Website",
     type: "text",
+    validation: "url",
     placeholder: "https://example.com",
     organizations: ["brink", "spiral"],
     section: "applicant"
@@ -265,6 +276,7 @@ export const allFields: FieldDefinition[] = [
     id: "linkedin_profile",
     label: "LinkedIn",
     type: "text",
+    validation: "url",
     placeholder: "https://linkedin.com/in/username",
     organizations: ["brink", "btrust"],
     section: "applicant"
@@ -283,9 +295,9 @@ export const allFields: FieldDefinition[] = [
     id: "country",
     label: "Country",
     description: "Country of residence and citizenship",
-    type: "text",
+    type: "select",
     required: true,
-    placeholder: "United States",
+    options: COUNTRY_OPTIONS,
     organizations: ["btrust", "maelstrom"],
     section: "applicant"
   },
@@ -294,6 +306,7 @@ export const allFields: FieldDefinition[] = [
     label: "Telephone Number",
     type: "text",
     required: true,
+    validation: "phone",
     placeholder: "+1 123-456-7890",
     organizations: ["btrust", "maelstrom"],
     section: "applicant"
@@ -368,6 +381,7 @@ export const allFields: FieldDefinition[] = [
     description: "Describe the contributions you've made to Bitcoin Core or other Bitcoin-related projects.",
     type: "textarea",
     required: true,
+    minWords: 10,
     placeholder: "Provide details about your contributions to Bitcoin Core or other Bitcoin-related projects.",
     organizations: ["brink"],
     section: "project"
@@ -389,6 +403,8 @@ export const allFields: FieldDefinition[] = [
     description: "Feel free to upload your grant proposal here. For Btrust applications, please use this sample template: https://bit.ly/starter-grant-template",
     type: "file",
     required: true,
+    accept: ".pdf,.doc,.docx",
+    maxSizeMB: 10,
     organizations: ["brink", "spiral", "btrust"],
     section: "project"
   },

@@ -217,11 +217,11 @@ export default function GrantApplicationForm() {
   
   // Next button handler
   const goToNextStep = async () => {
-    // Check if current section fields are valid
+    // Validate all section fields (not just required) so format errors also block navigation.
     const currentSection = visibleSections[currentStep];
-    const currentRequiredFields = requiredFieldsBySection[formSections.findIndex(s => s.id === currentSection.id)] || [];
-    const isStepValid = await trigger(currentRequiredFields);
-    
+    const currentSectionFields = getFieldsForSection(currentSection.id, selectedOrgs).map(f => f.id);
+    const isStepValid = await trigger(currentSectionFields);
+
     // For the first step, additionally check if at least one organization is selected
     if (currentStep === 0 && selectedOrgs.length === 0) {
       return; // Don't proceed if no organization is selected
