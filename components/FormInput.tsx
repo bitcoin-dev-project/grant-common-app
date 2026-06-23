@@ -53,7 +53,7 @@ export default function FormInput({
     if (finalMinWords) {
       const wordCount = v.split(/\s+/).filter(Boolean).length;
       if (wordCount < finalMinWords) {
-        return `Please add a bit more detail (at least ${finalMinWords} words).`;
+        return `Please provide more detail`;
       }
     }
 
