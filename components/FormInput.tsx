@@ -39,7 +39,43 @@ export default function FormInput({
   const finalType = fieldDefinition?.type || type;
   const finalPlaceholder = fieldDefinition?.placeholder || placeholder;
   const finalOptions = fieldDefinition?.options || options;
-  
+  const finalAccept = fieldDefinition?.accept;
+  const finalMaxSizeMB = fieldDefinition?.maxSizeMB;
+  const finalValidation = fieldDefinition?.validation;
+  const finalMinWords = fieldDefinition?.minWords;
+  const hasExtraValidation = Boolean(finalValidation || finalMinWords);
+
+  // url / phone / minWords checks; blanks are left to the `required` rule.
+  const validateFormat = (value: any) => {
+    if (typeof value !== 'string' || value.trim() === '') return true;
+    const v = value.trim();
+
+    if (finalMinWords) {
+      const wordCount = v.split(/\s+/).filter(Boolean).length;
+      if (wordCount < finalMinWords) {
+        return `Please provide more detail`;
+      }
+    }
+
+    if (finalValidation === 'url') {
+      const isUrl = /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/[^\s]*)?$/i.test(v);
+      const example = finalPlaceholder || 'https://example.com';
+      return isUrl || `Please enter a valid link (e.g. ${example}).`;
+    }
+
+    if (finalValidation === 'phone') {
+      if (!/^[+\d\s().-]+$/.test(v)) {
+        return 'Phone number can only contain digits and + ( ) - . spaces.';
+      }
+      const digitCount = v.replace(/\D/g, '').length;
+      if (digitCount < 7 || digitCount > 15) {
+        return 'Please enter a valid phone number (7–15 digits).';
+      }
+    }
+
+    return true;
+  };
+
   // Check if this field is specific to certain organizations
   const isOrgSpecific = fieldDefinition?.organizations && fieldDefinition.organizations.length > 0;
   
@@ -86,7 +122,10 @@ export default function FormInput({
       
       {finalType === 'textarea' ? (
         <textarea
-          {...register(name, { required: finalRequired })}
+          {...register(name, {
+            required: finalRequired,
+            validate: hasExtraValidation ? validateFormat : undefined
+          })}
           placeholder={finalPlaceholder}
           disabled={disabled}
           className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 ${
@@ -133,20 +172,53 @@ export default function FormInput({
           } ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
         />
       ) : finalType === 'file' ? (
-        <input
-          type="file"
-          {...register(name, { required: finalRequired })}
-          disabled={disabled}
-          className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 ${
-            error ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : ''
-          } ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-        />
+        <>
+          <input
+            type="file"
+            accept={finalAccept}
+            {...register(name, {
+              required: finalRequired,
+              validate: (value) => {
+                const file = value instanceof FileList ? value[0] : undefined;
+                if (!file) return true;
+
+                if (finalMaxSizeMB && file.size > finalMaxSizeMB * 1024 * 1024) {
+                  return `File is too large. Maximum size is ${finalMaxSizeMB}MB.`;
+                }
+
+                if (finalAccept) {
+                  const allowed = finalAccept.split(',').map(ext => ext.trim().toLowerCase());
+                  const matches = allowed.some(ext => file.name.toLowerCase().endsWith(ext));
+                  if (!matches) {
+                    return `Invalid file type. Please upload one of: ${allowed.join(', ')}.`;
+                  }
+                }
+
+                return true;
+              }
+            })}
+            disabled={disabled}
+            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 ${
+              error ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : ''
+            } ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+          />
+          {(finalAccept || finalMaxSizeMB) && (
+            <p className="text-xs text-gray-400 mt-1">
+              {finalAccept && `Accepted formats: ${finalAccept}.`}
+              {finalAccept && finalMaxSizeMB && ' '}
+              {finalMaxSizeMB && `Max size: ${finalMaxSizeMB}MB.`}
+            </p>
+          )}
+        </>
       ) : (
         <input
           type={finalType}
-          {...register(name, { 
+          {...register(name, {
             required: finalRequired,
-            pattern: finalType === 'email' ? /^\S+@\S+\.\S+$/ : undefined
+            pattern: finalType === 'email'
+              ? { value: /^\S+@\S+\.\S+$/, message: 'Please enter a valid email address.' }
+              : undefined,
+            validate: hasExtraValidation ? validateFormat : undefined
           })}
           placeholder={finalPlaceholder}
           disabled={disabled}

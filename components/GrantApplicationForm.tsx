@@ -217,11 +217,11 @@ export default function GrantApplicationForm() {
   
   // Next button handler
   const goToNextStep = async () => {
-    // Check if current section fields are valid
+    // Validate all section fields (not just required) so format errors also block navigation.
     const currentSection = visibleSections[currentStep];
-    const currentRequiredFields = requiredFieldsBySection[formSections.findIndex(s => s.id === currentSection.id)] || [];
-    const isStepValid = await trigger(currentRequiredFields);
-    
+    const currentSectionFields = getFieldsForSection(currentSection.id, selectedOrgs).map(f => f.id);
+    const isStepValid = await trigger(currentSectionFields);
+
     // For the first step, additionally check if at least one organization is selected
     if (currentStep === 0 && selectedOrgs.length === 0) {
       return; // Don't proceed if no organization is selected
@@ -607,8 +607,13 @@ export default function GrantApplicationForm() {
           <p className="text-gray-600 text-sm leading-relaxed">
             Select one or more organizations to apply to. Each organization has its own focus areas and requirements.
           </p>
+          <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
+            <p className="text-sm text-amber-800">
+              <span className="font-medium">Important:</span> Once you move forward, you will not be able to come back and change your organization selections. Please make sure you have selected all the organizations you want to apply to before continuing.
+            </p>
+          </div>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
           {activeOrgs.map(org => {
             const isWorkflowReady = org.workflowImplemented === true;
