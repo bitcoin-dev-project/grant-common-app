@@ -118,7 +118,7 @@ export default function FaqAccordion() {
   ]
 
   return (
-    <div className="mx-auto w-full max-w-3xl divide-y divide-gray-200 rounded-2xl bg-white p-2 gradient-border">
+    <div className="mx-auto w-full max-w-3xl divide-y divide-gray-200 rounded-2xl bg-white p-6 sm:p-8 gradient-border">
       <h2 className="p-4 sm:p-6 text-xl sm:text-2xl font-extrabold text-center text-gray-900">
         Frequently Asked Questions
       </h2>

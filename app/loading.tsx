@@ -1,5 +1,4 @@
 'use client'
-
 import BitcoinLoader from '../components/BitcoinLoader'
 
 export default function Loading() {
