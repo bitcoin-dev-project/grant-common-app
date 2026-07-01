@@ -158,7 +158,26 @@ export const allFields: FieldDefinition[] = [
     organizations: ["opensats", "spiral"],
     section: "source"
   },
-  
+  {
+    id: "screenshots_videos",
+    label: "Screenshots / Demo Videos",
+    description: "If applicable, provide links to screenshots, demo videos, or other visual materials that showcase your project.",
+    type: "textarea",
+    placeholder: "https://... (one link per line)",
+    organizations: ["opensats"],
+    section: "source"
+  },
+  {
+    id: "video_application",
+    label: "Video Application",
+    description: "Optional but encouraged: link to a short (~2 min) video explaining your project and why it matters.",
+    type: "text",
+    validation: "url",
+    placeholder: "https://",
+    organizations: ["opensats"],
+    section: "source"
+  },
+
   // Timeline section
   {
     id: "duration",
@@ -212,14 +231,56 @@ export const allFields: FieldDefinition[] = [
     organizations: ["opensats"],
     section: "budget"
   },
-  // Consolidated funding information field
   {
     id: "existing_funding",
     label: "Existing Grant Funding",
     description: "Has this project received any prior funding? If so, please describe.",
     type: "textarea",
     placeholder: "Please describe any existing funding or pending applications",
-    organizations: ["opensats", "btrust"],
+    organizations: ["btrust"],
+    section: "budget"
+  },
+  // OpenSats funding questions
+  {
+    id: "has_received_funding",
+    label: "Has this project or its contributors received prior funding?",
+    type: "select",
+    required: true,
+    options: [
+      { value: "no", label: "No" },
+      { value: "yes", label: "Yes" }
+    ],
+    organizations: ["opensats"],
+    section: "budget"
+  },
+  {
+    id: "what_funding",
+    label: "Prior funding details",
+    description: "If you answered yes above, include details of all prior funding (dates & amounts).",
+    type: "textarea",
+    placeholder: "e.g., 2024 — 5,000 USD grant from ExampleFund",
+    organizations: ["opensats"],
+    section: "budget"
+  },
+  {
+    id: "has_additional_funding",
+    label: "Do you receive or plan to receive additional funding during the grant period?",
+    type: "select",
+    required: true,
+    options: [
+      { value: "no", label: "No" },
+      { value: "yes", label: "Yes" }
+    ],
+    organizations: ["opensats"],
+    section: "budget"
+  },
+  {
+    id: "additional_funding",
+    label: "Additional funding details",
+    description: "If you answered yes above, describe the additional funding sources and amounts.",
+    type: "textarea",
+    placeholder: "Describe additional/ongoing funding sources and amounts",
+    organizations: ["opensats"],
     section: "budget"
   },
   

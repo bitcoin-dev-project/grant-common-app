@@ -29,6 +29,10 @@ export class ApiWorkflowHandler implements WorkflowHandler {
       'proposed_budget',
       'has_received_funding',
       'what_funding',
+      'has_additional_funding',
+      'additional_funding',
+      'screenshots_videos',
+      'video_application',
       'your_name',
       'email',
       'are_you_lead',
@@ -69,10 +73,16 @@ export class ApiWorkflowHandler implements WorkflowHandler {
       formattedData.short_description = application.project_description;
     }
     
+    // Map legacy existing_funding onto the structured funding fields
     if (application.existing_funding) {
       formattedData.what_funding = formattedData.what_funding || application.existing_funding;
-      formattedData.has_received_funding = true;
+      formattedData.has_received_funding = 'yes';
     }
+
+    // OpenSats expects yes/no as strings, not booleans
+    const isYes = (v: unknown) => v === 'yes' || v === true;
+    formattedData.has_received_funding = isYes(formattedData.has_received_funding) ? 'yes' : 'no';
+    formattedData.has_additional_funding = isYes(formattedData.has_additional_funding) ? 'yes' : 'no';
     
     // Ensure organizations is always an array if it exists
     if (application.organizations) {
