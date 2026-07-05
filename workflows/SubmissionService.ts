@@ -18,7 +18,7 @@ export class SubmissionService {
   ): Promise<SubmissionResponse> {
     try {
       // Get the appropriate workflow handler
-      const workflowType = org.workflowType || 'api';
+      const workflowType = org.workflowType || 'email';
       const handler = WorkflowFactory.getHandler(workflowType);
 
       if (!handler) {

@@ -257,7 +257,6 @@ export class EmailWorkflowHandler implements WorkflowHandler {
         // Project Details
         'project_name': 'Project Details',
         'project_description': 'Project Details',
-        'main_focus': 'Project Details',
         'potential_impact': 'Project Details',
         'focus_area_description': 'Project Details',
         'grant_purpose': 'Project Details',

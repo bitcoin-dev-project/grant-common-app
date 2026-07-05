@@ -18,7 +18,7 @@ export const metadata: Metadata = {
       { url: withAssetPrefix('/apple-touch-icon.png'), sizes: '180x180', type: 'image/png' },
     ],
   },
-  keywords: ['Bitcoin', 'grants', 'funding', 'cryptocurrency', 'open source', 'OpenSats', 'Brink', 'Btrust', 'Maelstrom', 'Spiral'],
+  keywords: ['Bitcoin', 'grants', 'funding', 'cryptocurrency', 'open source', 'Brink', 'Btrust', 'Maelstrom', 'Spiral'],
   authors: [{ name: 'Bitcoin Grants Common Application' }],
   openGraph: {
     type: 'website',
