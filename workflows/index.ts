@@ -9,6 +9,5 @@ export { WorkflowFactory } from './WorkflowFactory';
 export { SubmissionService } from './SubmissionService';
 
 // Export handlers
-export { ApiWorkflowHandler } from './handlers/ApiWorkflowHandler';
 export { GoogleFormWorkflowHandler } from './handlers/GoogleFormWorkflowHandler';
-export { EmailWorkflowHandler } from './handlers/EmailWorkflowHandler'; 
+export { EmailWorkflowHandler } from './handlers/EmailWorkflowHandler';

@@ -29,32 +29,6 @@ export type Organization = {
 }
 
 const organizations: Record<string, Organization> = {
-  opensats: {
-    id: 'opensats',
-    name: 'OpenSats',
-    description: 'OpenSats is a nonprofit organization dedicated to supporting open-source Bitcoin and other free and open-source software projects.',
-    website: 'https://opensats.org',
-    logo: '/logos/opensats.png',
-    accentColor: 'bg-orange-500',
-    // apiUrl: process.env.OPENSATS_API_URL || 'https://opensats.org/api/github',
-    apiUrl: process.env.OPENSATS_API_URL,
-    active: true,
-    workflowImplemented: true,
-    workflowType: 'api',
-    workflowConfig: {
-      apiHeaders: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENSATS_API_KEY}`
-      },
-      emailRecipients: process.env.OPENSATS_EMAIL_RECIPIENTS ? 
-        process.env.OPENSATS_EMAIL_RECIPIENTS.split(',') : 
-        []
-    },
-    fieldMapping: {
-      'project_description': 'project_description',
-      'bitcoin_dev_years': 'years_experience'
-    }
-  },
   brink: {
     id: 'brink',
     name: 'Brink',

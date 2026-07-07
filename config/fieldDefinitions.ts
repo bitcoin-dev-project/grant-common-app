@@ -58,34 +58,7 @@ export const allFields: FieldDefinition[] = [
     description: "The name of the project. Abbreviations are fine too.",
     type: "text",
     required: true,
-    organizations: ["opensats", "spiral"],
-    section: "project"
-  },
-  {
-    id: "main_focus",
-    label: "Main Focus",
-    description: "In which area will your project have the most impact?",
-    type: "select",
-    required: true,
-    options: [
-      { value: "core", label: "Bitcoin Core" },
-      { value: "education", label: "Education" },
-      { value: "layer1", label: "Layer1 / Bitcoin" },
-      { value: "layer2", label: "Layer2 / Lightning" },
-      { value: "eCash", label: "Layer3 / eCash" },
-      { value: "nostr", label: "Nostr" },
-      { value: "other", label: "Other" }
-    ],
-    organizations: ["opensats"],
-    section: "project"
-  },
-  // Hidden field for API compatibility
-  {
-    id: "short_description",
-    label: "Short Description",
-    type: "textarea",
-    required: false,
-    organizations: [],  // Not shown to users
+    organizations: ["spiral"],
     section: "project"
   },
   // Consolidated project description field
@@ -97,7 +70,7 @@ export const allFields: FieldDefinition[] = [
     required: true,
     minWords: 10,
     placeholder: "Describe your project in detail, including its purpose, who it serves, what problem it solves, deliverables, and timeline.",
-    organizations: ["opensats", "spiral", "brink", "btrust", "maelstrom"],
+    organizations: ["spiral", "brink", "btrust", "maelstrom"],
     section: "project"
   },
   {
@@ -107,7 +80,7 @@ export const allFields: FieldDefinition[] = [
     type: "textarea",
     required: true,
     placeholder: "Describe how your project will benefit the Bitcoin ecosystem or open-source community. Include potential use cases, user base, and long-term impact.",
-    organizations: ["opensats", "spiral"],
+    organizations: ["spiral"],
     section: "project"
   },
   {
@@ -136,7 +109,7 @@ export const allFields: FieldDefinition[] = [
     label: "Is this project free and open-source software?",
     type: "checkbox",
     required: true,
-    organizations: ["opensats", "spiral"],
+    organizations: ["spiral"],
     section: "source"
   },
   {
@@ -145,7 +118,7 @@ export const allFields: FieldDefinition[] = [
     description: "What license does your project use?",
     type: "text",
     required: true,
-    organizations: ["opensats", "spiral"],
+    organizations: ["spiral"],
     section: "source"
   },
   {
@@ -155,63 +128,11 @@ export const allFields: FieldDefinition[] = [
     type: "text",
     validation: "url",
     placeholder: "https://github.com/org/repo",
-    organizations: ["opensats", "spiral"],
+    organizations: ["spiral"],
     section: "source"
   },
   
-  // Timeline section
-  {
-    id: "duration",
-    label: "Project Duration",
-    description: "This will help us evaluate overall scope and potential grant duration.",
-    type: "select",
-    required: true,
-    options: [
-      { value: "12_months", label: "12 months" },
-      { value: "9_months", label: "9 months" },
-      { value: "6_months", label: "6 months" },
-      { value: "3_months", label: "3 months" },
-      { value: "other", label: "Other (please elaborate below)" }
-    ],
-    organizations: ["opensats"],
-    section: "timeline"
-  },
-  {
-    id: "timelines",
-    label: "Project Timelines",
-    description: "Please provide a detailed timeline for your project with major milestones.",
-    type: "textarea",
-    required: true,
-    organizations: ["opensats"],
-    section: "timeline"
-  },
-  {
-    id: "commitment",
-    label: "Time Commitment",
-    description: "How much time are you going to commit to the project?",
-    type: "select",
-    required: true,
-    options: [
-      { value: "100", label: "100% - Full Time" },
-      { value: "75", label: "75% - Part Time" },
-      { value: "50", label: "50% - Part Time" },
-      { value: "25", label: "25% - Side Project" }
-    ],
-    organizations: ["opensats"],
-    section: "timeline"
-  },
-  
   // Budget section
-  {
-    id: "proposed_budget",
-    label: "Costs & Proposed Budget",
-    description: "Current or estimated costs of the project. Please submit a proposed budget (in USD) around how much funding you are requesting and how it will be used.",
-    type: "textarea",
-    required: true,
-    placeholder: "Break down your budget needs in detail (e.g., development costs, hardware, hosting, etc.). Specify how much funding you are requesting in USD and provide justification for each expense.",
-    organizations: ["opensats"],
-    section: "budget"
-  },
   // Consolidated funding information field
   {
     id: "existing_funding",
@@ -219,7 +140,7 @@ export const allFields: FieldDefinition[] = [
     description: "Has this project received any prior funding? If so, please describe.",
     type: "textarea",
     placeholder: "Please describe any existing funding or pending applications",
-    organizations: ["opensats", "btrust"],
+    organizations: ["btrust"],
     section: "budget"
   },
   
@@ -231,7 +152,7 @@ export const allFields: FieldDefinition[] = [
     type: "text",
     required: true,
     placeholder: "John Doe",
-    organizations: ["opensats", "maelstrom", "brink", "spiral", "btrust"],
+    organizations: ["maelstrom", "brink", "spiral", "btrust"],
     section: "applicant"
   },
   {
@@ -240,7 +161,7 @@ export const allFields: FieldDefinition[] = [
     type: "email",
     required: true,
     placeholder: "satoshin@gmx.com",
-    organizations: ["opensats", "maelstrom", "brink", "spiral", "btrust"],
+    organizations: ["maelstrom", "brink", "spiral", "btrust"],
     section: "applicant"
   },
   // Consolidated GitHub field
@@ -338,30 +259,7 @@ export const allFields: FieldDefinition[] = [
       { value: "0-4 years", label: "0-4 years" },
       { value: "5+ years", label: "5+ years" }
     ],
-    organizations: ["maelstrom", "opensats"],
-    section: "applicant"
-  },
-  // OpenSats specific fields
-  {
-    id: "are_you_lead",
-    label: "Are you the Project Lead / Lead Contributor?",
-    type: "checkbox",
-    organizations: ["opensats"],
-    section: "applicant"
-  },
-  {
-    id: "other_lead",
-    label: "If someone else, please list the project's Lead Contributor or Maintainer",
-    type: "text",
-    organizations: ["opensats"],
-    section: "applicant"
-  },
-  {
-    id: "other_contact",
-    label: "Other Contact Details (if applicable)",
-    description: "Please list any other relevant contact details you are comfortable sharing in case we need to reach out with questions.",
-    type: "textarea",
-    organizations: ["opensats"],
+    organizations: ["maelstrom"],
     section: "applicant"
   },
   // Consolidated technical background field
@@ -417,7 +315,7 @@ export const allFields: FieldDefinition[] = [
     type: "textarea",
     required: true,
     placeholder: "Format: Name, Email, Role (e.g., John Doe, john@example.com, Bitcoin Core Maintainer)",
-    organizations: ["opensats", "btrust", "maelstrom"],
+    organizations: ["btrust", "maelstrom"],
     section: "references"
   },
   // Maelstrom specific fields

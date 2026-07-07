@@ -1,5 +1,4 @@
 import { WorkflowHandler } from './WorkflowHandler';
-import { ApiWorkflowHandler } from './handlers/ApiWorkflowHandler';
 import { GoogleFormWorkflowHandler } from './handlers/GoogleFormWorkflowHandler';
 import { EmailWorkflowHandler } from './handlers/EmailWorkflowHandler';
 
@@ -25,9 +24,6 @@ export class WorkflowFactory {
     let handler: WorkflowHandler | null = null;
 
     switch (workflowType) {
-      case 'api':
-        handler = new ApiWorkflowHandler();
-        break;
       case 'googleForm':
         handler = new GoogleFormWorkflowHandler();
         break;
